@@ -618,7 +618,12 @@
     async function apiCall(action, payload) {
       if (!CONFIG.WEB_APP_URL) return mockApi(action, payload);
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action }, payload)) });
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify(Object.assign({ action }, payload)),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow'
+        });
         return await res.json();
       } catch (e) { return { success: false, error: e.message }; }
     }
@@ -1414,7 +1419,14 @@
       });
       saveToStorage();
       showToast('Menyimpan ' + state.soal.length + ' soal...', 'info', 1500);
-      // Nama paket sudah divalidasi di atas
+      // Ambil nama paket dari input
+      const namaPaketInput = document.getElementById('nama-paket-soal');
+      const namaPaket = namaPaketInput ? namaPaketInput.value.trim() : '';
+      if (!namaPaket) {
+        showToast('Isi nama paket soal dulu!', 'error');
+        if (namaPaketInput) namaPaketInput.focus();
+        return;
+      }
       // Generate soal_id dari nama paket
       const soalId = 'SOAL_' + new Date().toISOString().replace(/[-:T.Z]/g, '').substring(0, 14);
       const res = await apiCall('simpanSoal', { 
