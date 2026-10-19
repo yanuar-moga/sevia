@@ -1,0 +1,2516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SCBT Integrated System - Panel Administrator" />
+  <title>SCBT System - Admin</title>
+  <script src="https://cdn.tailwindcss.com">
+    /* ============================================================
+       ENTER KEY TRIGGER — Submit form dengan tekan Enter
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+        var form = e.target.closest('form');
+        if (form) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  </script>
+  <link rel="icon" href="https://yanuar-moga.github.io/cbt/assets/logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --royal: #1e3a8a;
+      --royal-dark: #172554;
+      --royal-light: #2563eb;
+      --neon: #a3e635;
+      --neon-dark: #84cc16;
+      --slate: #1e293b;
+      --gray-bg: #f8fafc;
+    }
+    html, body { font-family: 'Inter', sans-serif; background: var(--gray-bg); -webkit-font-smoothing: antialiased; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .royal-gradient {
+      background: linear-gradient(135deg, #172554 0%, #1e3a8a 45%, #2563eb 100%);
+      position: relative; overflow: hidden;
+    }
+    .royal-gradient::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(163,230,53,0.18) 0, transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(37,99,235,0.35) 0, transparent 45%);
+      pointer-events: none;
+    }
+    .logo-3d {
+      filter: drop-shadow(0 20px 40px rgba(163,230,53,0.35)) drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+      animation: floatY 6s ease-in-out infinite;
+    }
+    @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    .btn-neon {
+      background: linear-gradient(135deg, #bef264 0%, #a3e635 50%, #84cc16 100%);
+      color: #1e293b; font-weight: 700;
+      box-shadow: 0 10px 30px -10px rgba(163,230,53,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -10px rgba(163,230,53,0.7); filter: brightness(1.08); }
+    .btn-royal { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; font-weight: 600; box-shadow: 0 10px 30px -10px rgba(37,99,235,0.6); transition: all 0.2s; }
+    .btn-royal:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .card { background: white; border-radius: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
+    .input-field { transition: all 0.2s ease; border: 2px solid #e2e8f0; }
+    .input-field:focus { border-color: var(--royal-light); box-shadow: 0 0 0 4px rgba(37,99,235,0.12); outline: none; }
+
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* Toast — upgraded with icon, progress bar, slide-in bounce */
+    .toast {
+      animation: toastIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .toast::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: rgba(255,255,255,0.5);
+    }
+    .toast.toast-out { animation: toastOut 0.3s ease-in forwards; }
+    @keyframes toastIn {
+      0% { transform: translateX(120%) scale(0.8); opacity: 0; }
+      60% { transform: translateX(-8%) scale(1.02); opacity: 1; }
+      100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes toastOut {
+      0% { transform: translateX(0); opacity: 1; }
+      100% { transform: translateX(120%); opacity: 0; }
+    }
+    .toast-progress {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.7);
+      animation: progressShrink 4s linear forwards;
+    }
+    @keyframes progressShrink { from { width: 100%; } to { width: 0%; } }
+
+    /* Custom Popup Modal — SweetAlert-style dengan tema SCBT */
+    .popup-overlay {
+      position: fixed; inset: 0; z-index: 10002;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      animation: overlayIn 0.2s ease-out;
+    }
+    .popup-overlay.popup-out { animation: overlayOut 0.2s ease-in forwards; }
+    @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
+
+    .popup-card {
+      background: white;
+      border-radius: 1.25rem;
+      max-width: 28rem;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.05);
+      animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .popup-card.popup-out { animation: cardOut 0.25s ease-in forwards; }
+    @keyframes cardIn {
+      0% { transform: scale(0.7) translateY(20px); opacity: 0; }
+      60% { transform: scale(1.03) translateY(-4px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes cardOut {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.85) translateY(20px); opacity: 0; }
+    }
+
+    .popup-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 1.5rem auto 0;
+      animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+    @keyframes iconPop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .popup-icon-success { background: linear-gradient(135deg, #bef264, #84cc16); }
+    .popup-icon-error   { background: linear-gradient(135deg, #fca5a5, #dc2626); }
+    .popup-icon-warning { background: linear-gradient(135deg, #fcd34d, #d97706); }
+    .popup-icon-info    { background: linear-gradient(135deg, #93c5fd, #1e3a8a); }
+    .popup-icon-question{ background: linear-gradient(135deg, #c4b5fd, #6d28d9); }
+    .popup-icon svg { width: 44px; height: 44px; color: white; stroke-width: 2.5; }
+
+    .popup-icon-success svg { animation: checkDraw 0.5s ease-out 0.4s both; }
+    @keyframes checkDraw {
+      0% { stroke-dashoffset: 30; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .popup-icon-error svg { animation: shake 0.5s ease-out 0.4s; }
+    @keyframes shake {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-8deg); }
+      75% { transform: rotate(8deg); }
+    }
+
+    .popup-body { padding: 1.25rem 1.5rem 1.5rem; text-align: center; }
+    .popup-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+    .popup-message { font-size: 0.95rem; color: #64748b; line-height: 1.5; }
+    .popup-actions { display: flex; gap: 0.75rem; padding: 0 1.5rem 1.5rem; }
+    .popup-actions button { flex: 1; padding: 0.75rem 1rem; border-radius: 0.75rem; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .popup-btn-cancel { background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; }
+    .popup-btn-cancel:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .popup-btn-confirm {
+      background: linear-gradient(135deg, #bef264, #a3e635 50%, #84cc16);
+      color: #1e293b;
+      box-shadow: 0 8px 20px -8px rgba(163, 230, 53, 0.6);
+    }
+    .popup-btn-confirm:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 12px 28px -8px rgba(163, 230, 53, 0.8); }
+    .popup-btn-danger {
+      background: linear-gradient(135deg, #f87171, #dc2626);
+      color: white;
+      box-shadow: 0 8px 20px -8px rgba(220, 38, 38, 0.6);
+    }
+    .popup-btn-danger:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .popup-btn-ok {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+      box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.6);
+    }
+    .popup-btn-ok:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .nav-item { transition: all 0.15s ease; }
+    .nav-item.active { background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1e293b; font-weight: 600; }
+    .nav-item:not(.active):hover { background: #f1f5f9; color: #1e3a8a; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.4); } }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #84cc16, #a3e635);
+      height: 6px;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    /* Bar chart */
+    .bar { background: linear-gradient(180deg, #2563eb, #1e3a8a); border-radius: 6px 6px 0 0; transition: height 0.5s ease; min-height: 4px; }
+
+    @media print {
+      body * { visibility: hidden; }
+      .print-area, .print-area * { visibility: visible; }
+      .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ============================================================
+       SCREEN 1: LOGIN ADMIN
+       ============================================================ -->
+  <div id="screen-login" class="min-h-screen grid lg:grid-cols-2">
+    <div class="royal-gradient text-white p-8 lg:p-12 flex flex-col justify-between relative hidden lg:flex">
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-12">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-14 h-14 logo-3d rounded-2xl bg-white/10 p-1.5" />
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">SCBT Integrated System</h1>
+            <p class="text-blue-200 text-sm">SEVIA • Smart Examination & Virtual Assessment</p>
+          </div>
+        </div>
+        <div class="space-y-6 max-w-md">
+          <h2 class="text-4xl font-extrabold leading-tight">Kontrol <span class="text-lime-300">Penuh</span> Ujian</h2>
+          <p class="text-blue-100 text-lg leading-relaxed">
+            Kelola akun proctor, jadwal sesi ujian, token dinamis, cetak kartu peserta,
+            dan pantau seluruh aktivitas ujian dari satu dashboard.
+          </p>
+          <div class="grid grid-cols-2 gap-3 pt-4">
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">∞</div><div class="text-xs text-blue-200">Akun Proctor</div></div>
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">Real-time</div><div class="text-xs text-blue-200">Analytics</div></div>
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">Auto</div><div class="text-xs text-blue-200">Token Rotation</div></div>
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">Print</div><div class="text-xs text-blue-200">Cards & Reports</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="relative z-10 pt-12 border-t border-white/10">
+        <div class="text-blue-300 text-xs">Developed by MB • v1.1 • Build 2025.11.01</div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center p-6 sm:p-10 bg-white">
+      <div class="w-full max-w-md fade-in">
+        <div class="lg:hidden flex items-center gap-3 mb-8 justify-center">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-12 h-12 logo-3d" />
+          <div><h1 class="text-xl font-extrabold text-slate-900">SCBT System</h1><p class="text-slate-500 text-xs">Admin Panel</p></div>
+        </div>
+        <div class="mb-8">
+          <div class="inline-block px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold mb-3">ADMINISTRATOR</div>
+          <h2 class="text-3xl font-extrabold text-slate-900">Login Admin</h2>
+          <p class="text-slate-500 mt-2">Akses penuh ke sistem manajemen CBT.</p>
+        </div>
+        <form id="login-form" class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+            <input id="login-username" type="text" required placeholder="admin" class="input-field w-full px-4 py-3 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+            <div class="relative">
+              <input id="login-password" type="password" required placeholder="••••••••" class="input-field w-full px-4 py-3 pr-12 rounded-xl" />
+              <button type="button" onclick="togglePwd('login-password')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn-neon w-full py-3.5 rounded-xl">Masuk Dashboard</button>
+        </form>
+        <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+          <button onclick="showAppInfo()" class="text-xs text-slate-400 hover:text-royal-blue transition">
+            About SCBT Version 1.1
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 2: DASHBOARD ADMIN
+       ============================================================ -->
+  <div id="screen-dashboard" class="hidden min-h-screen">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-10 h-10 rounded-lg" />
+          <div>
+            <div class="text-sm font-bold text-slate-900">SCBT Integrated System</div>
+            <div class="text-xs text-slate-500">Admin Panel</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+            <span>SISTEM AKTIF</span>
+          </div>
+          <div class="text-right hidden sm:block">
+            <div id="user-nama" class="text-sm font-semibold text-slate-900"></div>
+            <div class="text-xs text-slate-500">Administrator</div>
+          </div>
+          <button onclick="logout()" class="px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 font-semibold">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid lg:grid-cols-[240px_1fr] gap-6">
+      <!-- Sidebar -->
+      <aside class="lg:sticky lg:top-20 h-fit">
+        <nav class="card p-3 space-y-1">
+          <button onclick="navTo('dashboard')" data-nav="dashboard" class="nav-item active w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h5v6H4V5zm10-1h5a1 1 0 011 1v5h-6V4zm6 9v5a1 1 0 01-1 1h-5v-6h6zM4 15v5a1 1 0 001 1h5v-6H4z"/></svg>
+            Dashboard
+          </button>
+          <button onclick="navTo('proctor')" data-nav="proctor" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Manajemen Proctor
+          </button>
+          <button onclick="navTo('sesi')" data-nav="sesi" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Jadwal Sesi
+          </button>
+          <button onclick="navTo('token')" data-nav="token" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            Token & Rotasi
+          </button>
+          <button onclick="navTo('kartu')" data-nav="kartu" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+            Cetak Kartu Ujian
+          </button>
+          <button onclick="navTo('gen-token')" data-nav="gen-token" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            Generate Token
+          </button>
+          <button onclick="navTo('soal-setting')" data-nav="soal-setting"  class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Pengaturan Soal
+          </button>
+          <button onclick="navTo('hadir')" data-nav="hadir"  class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Daftar Hadir Peserta
+          </button>
+          <button onclick="navTo('panitia')" data-nav="panitia" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            Daftar Hadir Panitia
+          </button>
+        </nav>
+      </aside>
+
+      <main>
+        <!-- Tab: Dashboard -->
+        <div id="tab-dashboard" class="space-y-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Dashboard Analitik</h2>
+            <p class="text-slate-500 text-sm">Ringkasan status ujian secara global.</p>
+          </div>
+
+          <!-- KPI cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="card p-5">
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Total Siswa</div>
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              </div>
+              <div id="kpi-siswa" class="text-3xl font-extrabold text-slate-900">0</div>
+              <div class="text-xs text-slate-400 mt-1">Terdaftar</div>
+            </div>
+            <div class="card p-5">
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Proctor Aktif</div>
+                <svg class="w-5 h-5 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div id="kpi-proctor" class="text-3xl font-extrabold text-slate-900">0</div>
+              <div class="text-xs text-slate-400 mt-1">Pengawas</div>
+            </div>
+            <div class="card p-5">
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Selesai</div>
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div id="kpi-selesai" class="text-3xl font-extrabold text-emerald-600">0</div>
+              <div class="text-xs text-slate-400 mt-1">Siswa</div>
+            </div>
+            <div class="card p-5">
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Pelanggaran</div>
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <div id="kpi-violation" class="text-3xl font-extrabold text-red-600">0</div>
+              <div class="text-xs text-slate-400 mt-1">Total kasus</div>
+            </div>
+          </div>
+
+          <!-- Status breakdown + chart -->
+          <div class="grid lg:grid-cols-3 gap-4">
+            <div class="card p-5 lg:col-span-2">
+              <h3 class="font-bold text-slate-900 mb-4">Status Pengerjaan</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Sedang Mengerjakan</span><span id="bar-sedang-val" class="font-bold text-slate-900">0</span></div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5"><div id="bar-sedang" class="progress-bar" style="width:0%"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Selesai</span><span id="bar-selesai-val" class="font-bold text-slate-900">0</span></div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5"><div id="bar-selesai" class="progress-bar" style="width:0%"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Terkunci</span><span id="bar-terkunci-val" class="font-bold text-slate-900">0</span></div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5"><div id="bar-terkunci" class="progress-bar" style="width:0%; background: linear-gradient(90deg, #ef4444, #f87171);"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-sm mb-1"><span class="text-slate-600">Belum Mulai</span><span id="bar-belum-val" class="font-bold text-slate-900">0</span></div>
+                  <div class="w-full bg-slate-100 rounded-full h-2.5"><div id="bar-belum" class="progress-bar" style="width:0%; background: linear-gradient(90deg, #94a3b8, #cbd5e1);"></div></div>
+                </div>
+              </div>
+              <div class="mt-5 pt-4 border-t border-slate-100 flex justify-between items-center">
+                <div><div class="text-xs text-slate-500">Rata-rata Skor</div><div id="kpi-skor" class="text-2xl font-extrabold text-slate-900">0</div></div>
+                <div class="text-right"><div class="text-xs text-slate-500">Total Broadcast</div><div id="kpi-broadcast" class="text-2xl font-extrabold text-slate-900">0</div></div>
+              </div>
+            </div>
+
+            <div class="card p-5">
+              <h3 class="font-bold text-slate-900 mb-4">Sesi Aktif</h3>
+              <div id="sesi-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+            </div>
+          </div>
+
+          <!-- Proctor activity table -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-900">Aktivitas Proctor</h3>
+              <button onclick="loadDashboard()" class="btn-royal px-3 py-1.5 rounded-lg text-sm">Refresh</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left text-slate-500 border-b border-slate-200">
+                  <th class="py-2 px-3 font-semibold">Proctor</th>
+                  <th class="py-2 px-3 font-semibold">Ruangan</th>
+                  <th class="py-2 px-3 font-semibold">Sesi</th>
+                  <th class="py-2 px-3 font-semibold">Token</th>
+                  <th class="py-2 px-3 font-semibold">Status</th>
+                </tr></thead>
+                <tbody id="proctor-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Manajemen Proctor -->
+        <div id="tab-proctor" class="hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <div><h2 class="text-2xl font-extrabold text-slate-900">Manajemen Proctor</h2><p class="text-slate-500 text-sm">Buat, edit, hapus akun pengawas & sesi ruangan.</p></div>
+            <button onclick="openProctorModal()" class="btn-neon px-5 py-2.5 rounded-xl text-sm">+ Tambah Proctor</button>
+          </div>
+          <div class="card p-4">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left text-slate-500 border-b border-slate-200">
+                  <th class="py-2 px-3 font-semibold">Username</th>
+                  <th class="py-2 px-3 font-semibold">Nama</th>
+                  <th class="py-2 px-3 font-semibold">Ruangan</th>
+                  <th class="py-2 px-3 font-semibold">Sesi</th>
+                  <th class="py-2 px-3 font-semibold">Token</th>
+                  <th class="py-2 px-3 font-semibold">Status</th>
+                  <th class="py-2 px-3 font-semibold">Aksi</th>
+                </tr></thead>
+                <tbody id="proctor-list"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Jadwal Sesi -->
+        <div id="tab-sesi" class="hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <div><h2 class="text-2xl font-extrabold text-slate-900">Jadwal Sesi Ujian</h2><p class="text-slate-500 text-sm">Atur sesi dinamis: Sesi 1, 2, 3 dengan rotasi token otomatis.</p></div>
+            <button onclick="openSesiModal()" class="btn-neon px-5 py-2.5 rounded-xl text-sm">+ Tambah Sesi</button>
+          </div>
+          <div id="sesi-cards" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Tab: Token & Rotasi -->
+        <div id="tab-token" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Manajemen Token Proctor</h2><p class="text-slate-500 text-sm">Kelola token & masa aktifnya. Token dapat dirotasi untuk keamanan tingkat tinggi.</p></div>
+          <div class="card p-4">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left text-slate-500 border-b border-slate-200">
+                  <th class="py-2 px-3 font-semibold">Proctor</th>
+                  <th class="py-2 px-3 font-semibold">Token Saat Ini</th>
+                  <th class="py-2 px-3 font-semibold">Aktif Sampai</th>
+                  <th class="py-2 px-3 font-semibold">Aksi</th>
+                </tr></thead>
+                <tbody id="token-list"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card p-5 bg-gradient-to-br from-blue-50 to-lime-50">
+            <h3 class="font-bold text-slate-900 mb-2">Konfigurasi Rotasi Otomatis</h3>
+            <p class="text-sm text-slate-600 mb-3">Token proctor akan otomatis dirotasi setiap X hari untuk keamanan.</p>
+            <div class="grid sm:grid-cols-3 gap-3 items-end">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Interval Rotasi (hari)</label>
+                <input id="rotasi-interval" type="number" value="30" min="1" class="input-field w-full px-3 py-2 rounded-lg text-sm" />
+              </div>
+              <button onclick="showToast('Konfigurasi rotasi disimpan.', 'success')" class="btn-neon py-2 rounded-xl text-sm">Simpan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Cetak Kartu Ujian -->
+        <div id="tab-kartu" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Cetak Kartu Ujian Peserta</h2><p class="text-slate-500 text-sm">Pilih siswa untuk mencetak kartu ujian resmi.</p></div>
+          <div class="card p-5">
+            <div class="grid sm:grid-cols-3 gap-3 mb-4">
+              <input id="kartu-search" type="text" placeholder="Cari username / nama..." oninput="renderKartuList()" class="input-field px-4 py-2.5 rounded-xl sm:col-span-2" />
+              <button onclick="printAllKartu()" class="btn-neon py-2.5 rounded-xl text-sm">Cetak Semua</button>
+            </div>
+            <div id="kartu-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Daftar Hadir -->
+        <div id="tab-hadir" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Daftar Hadir Peserta</h2><p class="text-slate-500 text-sm">Cetak daftar hadir resmi per ruangan/sesi.</p></div>
+
+          <!-- Form konfigurasi kop & TTD -->
+          <div class="card p-5 bg-gradient-to-br from-blue-50 to-slate-50">
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-5 h-5 text-royal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <h3 class="font-bold text-slate-900">Konfigurasi Kop Surat &amp; Penandatangan</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Isi data di bawah sekali — akan tersimpan otomatis di browser. Klik "Simpan" untuk menerapkan.</p>
+
+            <div class="grid lg:grid-cols-3 gap-4 mb-4">
+              <!-- Kolom kiri: Identitas Sekolah -->
+              <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Identitas Sekolah</div>
+                <div class="space-y-2">
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Sekolah</label><input id="kop-nama-sekolah" type="text" placeholder="SMA Negeri 1 Contoh" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NPSN</label><input id="kop-npsn" type="text" placeholder="20100123" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Kabupaten</label><input id="kop-kabupaten" type="text" placeholder="Moga" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Provinsi</label><input id="kop-provinsi" type="text" placeholder="Jawa Tengah" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Kolom tengah: Detail Pelaksanaan -->
+              <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Detail Pelaksanaan</div>
+                <div class="space-y-2">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Hari</label><input id="kop-hari" type="text" placeholder="Senin" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Tanggal</label><input id="kop-tanggal-ujian" type="text" placeholder="15 Oktober 2025" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Pukul</label><input id="kop-pukul" type="text" placeholder="08:00 - 09:30" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Alokasi Waktu</label><input id="kop-alokasi" type="text" placeholder="90 menit" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  </div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Mode Pelaksanaan</label><input id="kop-mode" type="text" value="Online" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                </div>
+              </div>
+
+              <!-- Kolom kanan: Penandatangan -->
+              <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Data Penandatangan</div>
+                <div class="space-y-2">
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Kepala Sekolah</label><input id="kop-nama-kepsek" type="text" placeholder="Drs. Budi, M.Pd." class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NIP Kepala Sekolah</label><input id="kop-nip-kepsek" type="text" placeholder="19650101 199001 1 001" class="input-field w-full px-2 py-1.5 rounded-lg text-sm font-mono" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Proktor</label><input id="kop-nama-proktor" type="text" placeholder="Budi Santoso, S.Pd." class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NIP Proktor</label><input id="kop-nip-proktor" type="text" placeholder="19800101 200501 1 001" class="input-field w-full px-2 py-1.5 rounded-lg text-sm font-mono" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Pengawas</label><input id="kop-nama-pengawas" type="text" placeholder="Siti Aminah, S.Pd." class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NIP Pengawas</label><input id="kop-nip-pengawas" type="text" placeholder="19850101 200801 2 002" class="input-field w-full px-2 py-1.5 rounded-lg text-sm font-mono" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button onclick="simpanKopConfig()" class="btn-neon px-5 py-2 rounded-lg text-sm">Simpan Konfigurasi</button>
+              <button onclick="resetKopConfig()" class="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 font-semibold text-sm">Reset ke Default</button>
+            </div>
+          </div>
+
+          <!-- Filter & tabel -->
+          <div class="card p-5">
+            <div class="grid sm:grid-cols-4 gap-3 mb-4">
+              <select id="hadir-ruangan" class="input-field px-3 py-2.5 rounded-xl text-sm">
+                <option value="">Semua Ruangan</option>
+              </select>
+              <select id="hadir-sesi" class="input-field px-3 py-2.5 rounded-xl text-sm">
+                <option value="">Semua Sesi</option>
+              </select>
+              <label class="flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 border-slate-200 cursor-pointer hover:bg-amber-50 transition">
+                <input id="hadir-susulan" type="checkbox" class="w-4 h-4 accent-amber-500" onchange="toggleSusulan(this, 'hadir')" />
+                <span class="text-sm font-semibold text-slate-700">Daftar Hadir Susulan</span>
+              </label>
+              <button onclick="cetakDaftarHadir()" class="btn-neon py-2.5 rounded-xl text-sm">Cetak Daftar Hadir</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left text-slate-500 border-b border-slate-200">
+                  <th class="py-2 px-3 font-semibold">No</th>
+                  <th class="py-2 px-3 font-semibold">Username</th>
+                  <th class="py-2 px-3 font-semibold">Nama</th>
+                  <th class="py-2 px-3 font-semibold">Kelas</th>
+                  <th class="py-2 px-3 font-semibold">Ruangan</th>
+                  <th class="py-2 px-3 font-semibold">Sesi</th>
+                  <th class="py-2 px-3 font-semibold">Status</th>
+                </tr></thead>
+                <tbody id="hadir-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================
+             TAB: DAFTAR HADIR PANITIA (Teknisi, Proktor, Pengawas)
+             ============================================================ -->
+        <div id="tab-panitia" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Daftar Hadir Panitia</h2><p class="text-slate-500 text-sm">Daftar hadir Teknisi, Proktor &amp; Pengawas ujian.</p></div>
+
+          <!-- Form input daftar panitia -->
+          <div class="card p-5">
+            <h3 class="font-bold text-slate-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-royal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              Input Daftar Panitia
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">Masukkan nama-nama panitia. Teknisi bisa diinput bebas (satu nama per baris). Proktor &amp; Pengawas otomatis dimuat dari database (atau input manual di bawah).</p>
+
+            <div class="grid lg:grid-cols-3 gap-4">
+              <!-- Kolom 1: Teknisi -->
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Daftar Teknisi</div>
+                <p class="text-xs text-slate-500 mb-2">Satu nama per baris. Teknisi bisa diisi bebas (bukan dari database).</p>
+                <textarea id="panitia-teknisi" rows="8" placeholder="Ahmad Fadli&#10;Budi Santoso&#10;Citra Dewi" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono resize-none"></textarea>
+                <div class="text-xs text-slate-400 mt-1"><span id="teknisi-count">0</span> nama terdeteksi</div>
+              </div>
+
+              <!-- Kolom 2: Proktor -->
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Daftar Proktor</div>
+                <p class="text-xs text-slate-500 mb-2">Auto-load dari database. Anda bisa edit manual jika perlu (satu nama per baris).</p>
+                <textarea id="panitia-proktor" rows="8" placeholder="(auto-load dari database)" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono resize-none"></textarea>
+                <button onclick="reloadProktorList()" class="text-xs text-royal-blue hover:underline mt-1">↻ Reload dari Database</button>
+              </div>
+
+              <!-- Kolom 3: Pengawas -->
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Daftar Pengawas</div>
+                <p class="text-xs text-slate-500 mb-2">Input nama pengawas (satu per baris). Bisa proktor yang ditugaskan sebagai pengawas tambahan.</p>
+                <textarea id="panitia-pengawas" rows="8" placeholder="Siti Aminah, S.Pd.&#10;Ahmad Hidayat, S.Pd." class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono resize-none"></textarea>
+                <div class="text-xs text-slate-400 mt-1"><span id="pengawas-count">0</span> nama terdeteksi</div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between flex-wrap gap-3">
+              <div class="flex items-center gap-3 flex-wrap">
+                <label class="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-slate-200 cursor-pointer hover:bg-amber-50 transition">
+                  <input id="panitia-susulan" type="checkbox" class="w-4 h-4 accent-amber-500" onchange="toggleSusulan(this, 'panitia')" />
+                  <span class="text-sm font-semibold text-slate-700">Daftar Hadir Susulan</span>
+                </label>
+                <span class="text-xs text-slate-500">
+                  <strong>Catatan:</strong> Daftar panitia ini akan digabung dengan konfigurasi kop &amp; TTD (lihat di tab Daftar Hadir Peserta).
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="simpanPanitiaList()" class="btn-royal px-4 py-2 rounded-lg text-sm">Simpan Daftar</button>
+                <button onclick="cetakDaftarHadirPanitia()" class="btn-neon px-5 py-2 rounded-lg text-sm">Cetak Daftar Hadir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+          
+        <!-- Tab: Generate Token -->
+        <div id="tab-gen-token" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Generate Token Siswa</h2><p class="text-slate-500 text-sm">Generate token ujian untuk siswa tertentu atau massal. Token bisa custom atau otomatis.</p></div>
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 mb-4">Generate Token untuk Siswa</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Target Siswa</label>
+                <select id="gen-token-siswa" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
+                  <option value="">— Pilih Siswa —</option>
+                  <option value="ALL">📊 Semua Siswa (Massal)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Mode Token</label>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition">
+                    <input type="radio" id="token-mode-auto" name="token-gen-mode" value="auto" class="w-4 h-4 accent-lime-500" checked />
+                    <div><div class="font-bold text-slate-900 text-sm">⚡ Otomatis</div><div class="text-xs text-slate-500">Format: TKN-XXXX-2025</div></div>
+                  </label>
+                  <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition">
+                    <input type="radio" id="token-mode-custom" name="token-gen-mode" value="custom" class="w-4 h-4 accent-lime-500" />
+                    <div><div class="font-bold text-slate-900 text-sm">✏️ Custom</div><div class="text-xs text-slate-500">Tentukan nama token sendiri</div></div>
+                  </label>
+                </div>
+              </div>
+              <div id="custom-token-section" class="hidden">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Token Custom</label>
+                <input id="custom-token-value" type="text" placeholder="cth: UJIAN-TKA-2025" class="input-field w-full px-4 py-3 rounded-xl text-sm font-mono" />
+              </div>
+              <div id="auto-token-section">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Prefix Token (opsional)</label>
+                <input id="token-prefix" type="text" placeholder="cth: TKN, UJIAN, TKA (default: TKN)" value="TKN" class="input-field w-full px-4 py-2 rounded-xl text-sm font-mono" />
+              </div>
+              <button onclick="generateTokenAdmin()" class="btn-neon px-6 py-2.5 rounded-xl text-sm">⚡ Generate Token</button>
+            </div>
+            <div id="gen-token-result" class="hidden mt-6 p-4 rounded-xl bg-lime-50 border border-lime-300">
+              <div class="font-bold text-lime-800 mb-2">✅ Token Berhasil Dibuat</div>
+              <div id="gen-token-list" class="space-y-1 text-sm text-slate-700 font-mono"></div>
+              <button onclick="copyAllTokens()" class="mt-3 btn-royal px-4 py-2 rounded-lg text-sm">📋 Salin Semua</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Pengaturan Soal -->
+        <div id="tab-soal-setting" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Pengaturan Soal Ujian</h2><p class="text-slate-500 text-sm">Tentukan default mode soal untuk seluruh ujian. Proctor dapat mengubah pengaturan ini per ruangan.</p></div>
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 mb-4">Mode Soal Default (Berlaku untuk Semua Ruangan)</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Mode Soal:</label>
+                <div class="grid sm:grid-cols-2 gap-3">
+                  <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition">
+                    <input type="radio" id="mode-cbt" name="soal-mode" value="cbt" class="w-4 h-4 accent-lime-500" checked />
+                    <div><div class="font-bold text-slate-900 text-sm">📝 Sistem CBT SEVIA</div><div class="text-xs text-slate-500 mt-0.5">Soal dari spreadsheet, dikerjakan di halaman ujian</div></div>
+                  </label>
+                  <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition">
+                    <input type="radio" id="mode-gform" name="soal-mode" value="gform" class="w-4 h-4 accent-lime-500" />
+                    <div><div class="font-bold text-slate-900 text-sm">📋 Google Form</div><div class="text-xs text-slate-500 mt-0.5">Soal dari Google Form, di-embed di halaman ujian</div></div>
+                  </label>
+                </div>
+              </div>
+              <div id="cbt-soal-section" class="hidden">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Paket Soal:</label>
+                <select id="soal-id-select" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
+                  <option value="">— Pilih Paket Soal —</option>
+                </select>
+                <p class="text-xs text-slate-400 mt-1">Paket soal dibuat oleh guru via halaman Editor Soal (soal.html)</p>
+              </div>
+              <div id="gform-url-section" class="hidden">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">URL Google Form (embed)</label>
+                <input id="gform-url-input" type="text" placeholder="https://docs.google.com/forms/d/e/XXXX/viewform?embedded=true" class="input-field w-full px-4 py-3 rounded-xl text-sm font-mono" />
+                <p class="text-xs text-slate-400 mt-1">Gunakan URL Google Form dengan parameter <code>?embedded=true</code></p>
+              </div>
+              <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="text-sm text-blue-800">
+                  <strong>Info:</strong> Pengaturan ini adalah <strong>default</strong> untuk semua ruangan.
+                  Proctor dapat mengubah mode soal per ruangan dari halaman Proctor → tab "Pengaturan Soal".
+                </div>
+              </div>
+              <button onclick="saveSoalModeAdmin()" class="btn-neon px-6 py-2.5 rounded-xl text-sm">Simpan Pengaturan Default</button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    
+    <!-- Footer dashboard -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center">
+      <button onclick="showAppInfo()" class="text-xs text-slate-400 hover:text-royal-blue transition">
+        About SCBT Version 1.1
+      </button>
+    </footer>
+  </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: APP INFO
+       ============================================================ -->
+  <div id="modal-info" class="hidden fixed inset-0 z-[10001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-8 fade-in">
+      <div class="text-center mb-6">
+        <img src="https://yanuar-moga.github.io/cbt/assets/sevia.png" class="max-h-24 max-w-[80%] w-auto mx-auto mb-3" alt="SEVIA Logo" style="object-fit: contain;" />
+        <h3 class="text-xl font-extrabold text-slate-900">SCBT Integrated System</h3>
+        <p class="text-slate-500 text-sm">Smart Examination & Virtual Assessment (SEVIA)</p>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Pengembang</span><span class="font-semibold text-slate-900">MB</span></div>
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Build</span><span class="font-mono text-slate-900">2025.10.03</span></div>
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Versi</span><span class="font-mono text-slate-900">v1.1</span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-500">Kontak Email</span><a href="mailto:yanuar.b@gmail.com" class="font-semibold text-royal-blue hover:underline">yanuar.b@gmail.com</a></div>
+      </div>
+      <button onclick="closeAppInfo()" class="btn-royal w-full py-3 rounded-xl mt-6">Tutup</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: CRUD PROCTOR
+       ============================================================ -->
+  <div id="modal-proctor" class="hidden fixed inset-0 z-[10001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 fade-in">
+      <h3 class="font-extrabold text-lg text-slate-900 mb-4" id="proctor-modal-title">Tambah Proctor</h3>
+      <form id="proctor-form" class="space-y-3">
+        <input type="hidden" id="p-mode" value="create" />
+        <input type="hidden" id="p-orig-username" value="" />
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Username</label><input id="p-username" type="text" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Password</label><input id="p-password" type="text" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        </div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap</label><input id="p-nama" type="text" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Ruangan</label><input id="p-ruangan" type="text" placeholder="Ruang A-101" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Sesi</label><select id="p-sesi" required class="input-field w-full px-3 py-2 rounded-lg text-sm"><option value="Sesi 1">Sesi 1</option><option value="Sesi 2">Sesi 2</option><option value="Sesi 3">Sesi 3</option></select></div>
+        </div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-1">Token Aktif Sampai</label><input id="p-expiry" type="text" placeholder="2027-12-31 23:59:59" value="2027-12-31 23:59:59" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeProctorModal()" class="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button>
+          <button type="submit" class="flex-1 btn-neon py-2.5 rounded-xl">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: CRUD SESI
+       ============================================================ -->
+  <div id="modal-sesi" class="hidden fixed inset-0 z-[10001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card max-w-lg w-full p-6 fade-in">
+      <h3 class="font-extrabold text-lg text-slate-900 mb-4" id="sesi-modal-title">Tambah Sesi</h3>
+      <form id="sesi-form" class="space-y-3">
+        <input type="hidden" id="s-mode" value="create" />
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Kode Sesi</label><input id="s-kode" type="text" placeholder="S1" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Nama Sesi</label><input id="s-nama" type="text" placeholder="Sesi 1" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Tanggal</label><input id="s-tanggal" type="date" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label><input id="s-mapel" type="text" placeholder="Matematika" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        </div>
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Jam Mulai</label><input id="s-mulai" type="time" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Jam Selesai</label><input id="s-selesai" type="time" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Durasi (mnt)</label><input id="s-durasi" type="number" value="90" min="10" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Soal</label><input id="s-jumlah" type="number" value="50" min="1" required class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-700 mb-1">Ruangan Terkait</label><input id="s-ruangan" type="text" placeholder="Ruang A-101" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        </div>
+        <div><label class="block text-xs font-semibold text-slate-700 mb-1">Keterangan</label><input id="s-ket" type="text" placeholder="Ujian Tengah Semester" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeSesiModal()" class="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button>
+          <button type="submit" class="flex-1 btn-neon py-2.5 rounded-xl">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TOAST
+       ============================================================ -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[10000] space-y-2"></div>
+
+  <script>
+    /* ============================================================
+       CONFIG
+       ============================================================ */
+    const CONFIG = {
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzvTsgX8Gl8xcVjhP8NjYzLONMSZqj__WJ2On0R-rtyZ-EgefcV5zvRbXG7B1VJ6Di6/exec',
+      LOGO: 'https://yanuar-moga.github.io/cbt/assets/logo.png',
+      APP_NAME: 'SCBT',
+      FULL_NAME: 'SCBT Integrated System (SEVIA)',
+      TAGLINE: 'Smart Examination & Virtual Assessment',
+      VERSION: 'v1.1',
+      DEVELOPER: 'MB',
+      EMAIL: 'yanuar.b@gmail.com'
+    };
+
+    const STORAGE_KEY = 'cbt_admin_session';
+    function loadSession() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) { return null; } }
+    function saveSession(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+    function clearSession() { localStorage.removeItem(STORAGE_KEY); }
+
+    let state = {
+      user: null,
+      proctors: [],
+      sesi: [],
+      siswa: [],
+      summary: null,
+      currentProctorEdit: null,
+      currentSesiEdit: null
+    };
+
+    /* ============================================================
+       DEMO DATA
+       ============================================================ */
+    const DEMO_PROCTORS = [
+      { username: 'proctor01', password: 'proc123', nama_lengkap: 'Budi Santoso, S.Pd.', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_proctor: 'PRC-7F3K-2025', token_aktif_sampai: '2027-12-31 23:59:59', status: 'aktif' },
+      { username: 'proctor02', password: 'proc456', nama_lengkap: 'Siti Aminah, S.Pd.', ruangan: 'Ruang B-201', sesi: 'Sesi 2', token_proctor: 'PRC-9K2L-2025', token_aktif_sampai: '2027-12-31 23:59:59', status: 'aktif' },
+      { username: 'proctor03', password: 'proc789', nama_lengkap: 'Ahmad Hidayat, S.Pd.', ruangan: 'Ruang C-301', sesi: 'Sesi 3', token_proctor: 'PRC-4M8N-2025', token_aktif_sampai: '2027-12-31 23:59:59', status: 'aktif' }
+    ];
+
+    const DEMO_SESI = [
+      { kode_sesi: 'S1', nama_sesi: 'Sesi 1', tanggal: '2025-10-15', jam_mulai: '08:00', jam_selesai: '09:30', durasi_menit: 90, mata_pelajaran: 'Matematika', jumlah_soal: 50, ruangan_terkait: 'Ruang A-101', status: 'aktif', keterangan: 'UTS Ganjil' },
+      { kode_sesi: 'S2', nama_sesi: 'Sesi 2', tanggal: '2025-10-15', jam_mulai: '10:00', jam_selesai: '11:30', durasi_menit: 90, mata_pelajaran: 'Bahasa Inggris', jumlah_soal: 50, ruangan_terkait: 'Ruang B-201', status: 'aktif', keterangan: 'UTS Ganjil' },
+      { kode_sesi: 'S3', nama_sesi: 'Sesi 3', tanggal: '2025-10-15', jam_mulai: '13:00', jam_selesai: '14:30', durasi_menit: 90, mata_pelajaran: 'BIPA', jumlah_soal: 40, ruangan_terkait: 'Ruang C-301', status: 'aktif', keterangan: 'UTS Ganjil' }
+    ];
+
+    const DEMO_SISWA = [
+      { username: 'siswa001', nama_lengkap: 'Ahmad Fadli', kelas: 'XII-IPA-1', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_ujian: 'TKN-AB12-2025' },
+      { username: 'siswa002', nama_lengkap: 'Dewi Lestari', kelas: 'XII-IPA-1', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_ujian: 'TKN-CD34-2025' },
+      { username: 'siswa003', nama_lengkap: 'Rizki Pratama', kelas: 'XII-IPS-2', ruangan: 'Ruang B-201', sesi: 'Sesi 2', token_ujian: 'TKN-EF56-2025' },
+      { username: 'siswa004', nama_lengkap: 'Siti Nurhaliza', kelas: 'XII-IPA-1', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_ujian: 'TKN-GH78-2025' },
+      { username: 'siswa005', nama_lengkap: 'Bayu Saputra', kelas: 'XII-IPA-1', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_ujian: 'TKN-IJ90-2025' },
+      { username: 'siswa006', nama_lengkap: 'Putri Anggraini', kelas: 'XII-IPA-1', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_ujian: 'TKN-KL12-2025' },
+      { username: 'siswa007', nama_lengkap: 'Doni Kurniawan', kelas: 'XII-IPS-2', ruangan: 'Ruang B-201', sesi: 'Sesi 2', token_ujian: 'TKN-MN34-2025' },
+      { username: 'siswa008', nama_lengkap: 'Indah Permata', kelas: 'XII-IPA-1', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_ujian: 'TKN-OP56-2025' }
+    ];
+
+    /* ============================================================
+       API HELPER
+       ============================================================ */
+    async function apiCall(action, payload) {
+      if (!CONFIG.WEB_APP_URL) return mockApi(action, payload);
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action }, payload)) });
+        return await res.json();
+      } catch (e) { return { success: false, error: e.message }; }
+    }
+
+    function mockApi(action, p) {
+      if (action === 'loginAdmin') {
+        if (p.username === 'admin' && p.password === 'admin123') {
+          return { success: true, sessionToken: 'admin-' + Date.now(), user: { username: 'admin', nama: 'Administrator Utama', email: 'admin@cbt.id', role: 'admin' } };
+        }
+        return { success: false, error: 'Username/password salah (demo: admin / admin123)' };
+      }
+      if (action === 'getDashboardAdmin') {
+        return {
+          success: true,
+          summary: {
+            total_siswa: DEMO_SISWA.length,
+            total_proctor: DEMO_PROCTORS.length,
+            total_sesi: DEMO_SESI.length,
+            siswa_selesai: 2,
+            siswa_sedang: 4,
+            siswa_terkunci: 2,
+            siswa_belum: 0,
+            total_pelanggaran: 3,
+            total_broadcast: 5,
+            rata_skor: 78
+          },
+          sesi: DEMO_SESI,
+          proctor: DEMO_PROCTORS
+        };
+      }
+      if (action === 'crudProctor') {
+        if (p.op === 'list') return { success: true, data: DEMO_PROCTORS };
+        if (p.op === 'create') { DEMO_PROCTORS.push({ username: p.username, password: p.password, nama_lengkap: p.nama_lengkap, ruangan: p.ruangan, sesi: p.sesi, token_proctor: 'PRC-' + Math.random().toString(36).substr(2,4).toUpperCase() + '-2025', token_aktif_sampai: p.token_aktif_sampai || '2027-12-31 23:59:59', status: 'aktif' }); return { success: true }; }
+        if (p.op === 'update') { const i = DEMO_PROCTORS.findIndex(x => x.username === p.username); if (i >= 0) Object.assign(DEMO_PROCTORS[i], { password: p.password, nama_lengkap: p.nama_lengkap, ruangan: p.ruangan, sesi: p.sesi, token_aktif_sampai: p.token_aktif_sampai, status: p.status }); return { success: true }; }
+        if (p.op === 'delete') { const i = DEMO_PROCTORS.findIndex(x => x.username === p.username); if (i >= 0) DEMO_PROCTORS.splice(i, 1); return { success: true }; }
+      }
+      if (action === 'crudSesi') {
+        if (p.op === 'list') return { success: true, data: DEMO_SESI };
+        if (p.op === 'create') { DEMO_SESI.push({ kode_sesi: p.kode_sesi, nama_sesi: p.nama_sesi, tanggal: p.tanggal, jam_mulai: p.jam_mulai, jam_selesai: p.jam_selesai, durasi_menit: p.durasi_menit, mata_pelajaran: p.mata_pelajaran, jumlah_soal: p.jumlah_soal, ruangan_terkait: p.ruangan_terkait, status: 'aktif', keterangan: p.keterangan || '' }); return { success: true }; }
+        if (p.op === 'delete') { const i = DEMO_SESI.findIndex(x => x.kode_sesi === p.kode_sesi); if (i >= 0) DEMO_SESI.splice(i, 1); return { success: true }; }
+      }
+      if (action === 'getDaftarHadir') {
+        let data = DEMO_SISWA.map((s, i) => ({ no: i + 1, username: s.username, nama_lengkap: s.nama_lengkap, kelas: s.kelas, ruangan: s.ruangan, sesi: s.sesi, tanggal_ujian: '2025-10-15', waktu_hadir: '07:55', status_hadir: 'hadir' }));
+        if (p.ruangan) data = data.filter(r => r.ruangan === p.ruangan);
+        if (p.sesi) data = data.filter(r => r.sesi === p.sesi);
+        return { success: true, data };
+      }
+      if (action === 'getKartuUjian') {
+        const s = DEMO_SISWA.find(x => x.username === p.username);
+        const sesi = DEMO_SESI.find(x => x.nama_sesi === s?.sesi);
+        return { success: true, siswa: s, sesi };
+      }
+      if (action === 'generateTokenSiswa') {
+        const token = p.token || ('TKN-' + Math.random().toString(36).substr(2,8).toUpperCase() + '-2025');
+        return { success: true, token: token };
+      }
+      if (action === 'getSoalMode') {
+        return { success: true, mode: 'cbt', gform_url: '', soal_id: '', source: 'default' };
+      }
+      if (action === 'saveSoalMode') {
+        return { success: true, mode: p.mode, ruangan: p.ruangan || 'DEFAULT' };
+      }
+      if (action === 'getAllSoal') {
+        return { success: true, soal: [] };
+      }
+      return { success: false, error: 'Unknown action' };
+    }
+
+    /* ============================================================
+       UI HELPERS — Popup System (SweetAlert-style)
+       ============================================================ */
+    const POPUP_ICONS = {
+      success: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>',
+      error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>',
+      warning: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+      info: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      question: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.5-1.5 2.5-3 3-.5.25-1 .75-1 1.5M12 18h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+    };
+    const POPUP_TITLES = {
+      success: 'Berhasil!', error: 'Terjadi Kesalahan',
+      warning: 'Peringatan', info: 'Informasi', question: 'Konfirmasi'
+    };
+
+    function showToast(msg, type = 'info', duration = 4000) {
+      const colors = { info: 'bg-blue-600', success: 'bg-emerald-500', error: 'bg-red-500', warning: 'bg-amber-500' };
+      const el = document.createElement('div');
+      el.className = `toast ${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg max-w-sm flex items-center gap-3`;
+      const iconSvg = POPUP_ICONS[type] || POPUP_ICONS.info;
+      el.innerHTML = `
+        <div class="w-5 h-5 flex-shrink-0">${iconSvg.replace('<svg', '<svg style="width:20px;height:20px;"')}</div>
+        <div class="flex-1 text-sm font-medium">${msg}</div>
+        <button onclick="this.parentElement.classList.add('toast-out'); setTimeout(()=>this.parentElement.remove(),300)" class="text-white/70 hover:text-white flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="toast-progress"></div>
+      `;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); }, duration);
+    }
+
+    function showPopup(opts) {
+      return new Promise((resolve) => {
+        const { type = 'info', title, message, confirmText = 'OK', cancelText = 'Batal', showCancel = false, danger = false } = opts;
+        const iconSvg = POPUP_ICONS[type] || POPUP_ICONS.info;
+        const finalTitle = title || POPUP_TITLES[type] || 'Informasi';
+        const overlay = document.createElement('div');
+        overlay.className = 'popup-overlay';
+        overlay.innerHTML = `
+          <div class="popup-card">
+            <div class="popup-icon popup-icon-${type}">${iconSvg}</div>
+            <div class="popup-body">
+              <div class="popup-title">${finalTitle}</div>
+              <div class="popup-message">${message}</div>
+            </div>
+            <div class="popup-actions">
+              ${showCancel ? `<button class="popup-btn-cancel" data-action="cancel">${cancelText}</button>` : ''}
+              <button class="${danger ? 'popup-btn-danger' : (type === 'success' ? 'popup-btn-confirm' : 'popup-btn-ok')}" data-action="ok">${confirmText}</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = (result) => {
+          overlay.classList.add('popup-out');
+          const card = overlay.querySelector('.popup-card');
+          if (card) card.classList.add('popup-out');
+          setTimeout(() => overlay.remove(), 250);
+          resolve(result);
+        };
+        overlay.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+        const cancelBtn = overlay.querySelector('[data-action="cancel"]');
+        if (cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+        overlay.addEventListener('click', (e) => { if (e.target === overlay && !showCancel) close(true); });
+      });
+    }
+
+    function showConfirm(message, opts = {}) {
+      return showPopup({
+        type: opts.type || 'question',
+        title: opts.title || 'Konfirmasi',
+        message: message, showCancel: true,
+        confirmText: opts.confirmText || 'Ya, Lanjutkan',
+        cancelText: opts.cancelText || 'Batal',
+        danger: opts.danger || false
+      });
+    }
+
+    function showAlert(message, type = 'info', title = null) {
+      return showPopup({ type: type, title: title, message: message, showCancel: false, confirmText: 'OK, Mengerti' });
+    }
+    const toast = showToast;
+    function togglePwd(id) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; }
+    function showAppInfo() { document.getElementById('modal-info').classList.remove('hidden'); }
+    function closeAppInfo() { document.getElementById('modal-info').classList.add('hidden'); }
+
+    function navTo(tab) {
+      ['dashboard', 'proctor', 'sesi', 'token', 'kartu', 'gen-token', 'soal-setting', 'hadir', 'panitia'].forEach(t => {
+        document.getElementById('tab-' + t).classList.add('hidden');
+        document.querySelector(`[data-nav="${t}"]`).classList.remove('active');
+      });
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+      document.querySelector(`[data-nav="${tab}"]`).classList.add('active');
+      if (tab === 'proctor') loadProctors();
+      if (tab === 'sesi') loadSesi();
+      if (tab === 'token') loadTokens();
+      if (tab === 'kartu') loadKartu();
+      if (tab === 'gen-token') loadTokenSiswaList();
+      if (tab === 'soal-setting') loadSoalMode();
+      if (tab === 'hadir') { loadHadir(); loadKopConfig(); }
+      if (tab === 'panitia') { loadKopConfig(); loadPanitiaData(); }
+    }
+
+    /* ============================================================
+       LOGIN
+       ============================================================ */
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      const res = await apiCall('loginAdmin', { username, password });
+      if (!res.success) { showToast(res.error || 'Login gagal', 'error'); return; }
+      state.user = res.user;
+      saveSession({ user: res.user, loginAt: Date.now() });
+      document.getElementById('user-nama').textContent = res.user.nama;
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-dashboard').classList.remove('hidden');
+      showToast('Selamat datang, ' + res.user.nama, 'success');
+      loadDashboard();
+    });
+
+    function logout() {
+      clearSession();
+      state.user = null;
+      document.getElementById('screen-dashboard').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+      document.getElementById('login-form').reset();
+    }
+
+    /* ============================================================
+       DASHBOARD
+       ============================================================ */
+    async function loadDashboard() {
+      const res = await apiCall('getDashboardAdmin', {});
+      if (!res.success) return;
+      state.summary = res.summary;
+      state.sesi = res.sesi || [];
+      state.proctors = res.proctor || [];
+
+      const s = res.summary;
+      document.getElementById('kpi-siswa').textContent = s.total_siswa;
+      document.getElementById('kpi-proctor').textContent = s.total_proctor;
+      document.getElementById('kpi-selesai').textContent = s.siswa_selesai;
+      document.getElementById('kpi-violation').textContent = s.total_pelanggaran;
+      document.getElementById('kpi-skor').textContent = s.rata_skor;
+      document.getElementById('kpi-broadcast').textContent = s.total_broadcast;
+
+      // Progress bars
+      const total = s.total_siswa || 1;
+      const setBar = (id, val) => {
+        document.getElementById(id).style.width = (val / total * 100) + '%';
+        document.getElementById(id + '-val').textContent = val;
+      };
+      setBar('bar-sedang', s.siswa_sedang);
+      setBar('bar-selesai', s.siswa_selesai);
+      setBar('bar-terkunci', s.siswa_terkunci);
+      setBar('bar-belum', s.siswa_belum);
+
+      // Sesi list
+      const sesiList = document.getElementById('sesi-list');
+      sesiList.innerHTML = res.sesi.map(s => `
+        <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="font-semibold text-slate-900 text-sm">${s.nama_sesi}</div>
+              <div class="text-xs text-slate-500">${s.mata_pelajaran} • ${s.tanggal}</div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full ${s.status === 'aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">${s.status}</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-1">${s.jam_mulai} - ${s.jam_selesai} • ${s.jumlah_soal} soal</div>
+        </div>
+      `).join('');
+
+      // Proctor activity table
+      const tbody = document.getElementById('proctor-tbody');
+      tbody.innerHTML = res.proctor.map(p => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="py-2 px-3 font-semibold text-slate-900">${p.nama_lengkap}</td>
+          <td class="py-2 px-3 text-slate-600">${p.ruangan}</td>
+          <td class="py-2 px-3 text-slate-600">${p.sesi}</td>
+          <td class="py-2 px-3 font-mono text-xs text-royal-blue">${p.token_proctor || '-'}</td>
+          <td class="py-2 px-3"><span class="text-xs px-2 py-0.5 rounded-full ${p.status === 'aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${p.status}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    /* ============================================================
+       PROCTOR CRUD
+       ============================================================ */
+    async function loadProctors() {
+      const res = await apiCall('crudProctor', { op: 'list' });
+      if (res.success) {
+        state.proctors = res.data;
+        renderProctorList();
+      }
+    }
+
+    function renderProctorList() {
+      const tbody = document.getElementById('proctor-list');
+      tbody.innerHTML = state.proctors.map(p => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="py-2 px-3 font-mono text-slate-700">${p.username}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${p.nama_lengkap}</td>
+          <td class="py-2 px-3 text-slate-600">${p.ruangan}</td>
+          <td class="py-2 px-3 text-slate-600">${p.sesi}</td>
+          <td class="py-2 px-3 font-mono text-xs text-royal-blue">${p.token_proctor}</td>
+          <td class="py-2 px-3"><span class="text-xs px-2 py-0.5 rounded-full ${p.status === 'aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${p.status}</span></td>
+          <td class="py-2 px-3">
+            <div class="flex gap-1">
+              <button onclick="editProctor('${p.username}')" class="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold hover:bg-blue-200">Edit</button>
+              <button onclick="deleteProctor('${p.username}')" class="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-bold hover:bg-red-200">Hapus</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openProctorModal(p = null) {
+      document.getElementById('proctor-modal-title').textContent = p ? 'Edit Proctor' : 'Tambah Proctor';
+      document.getElementById('p-mode').value = p ? 'update' : 'create';
+      document.getElementById('p-orig-username').value = p ? p.username : '';
+      document.getElementById('p-username').value = p ? p.username : '';
+      document.getElementById('p-username').readOnly = !!p;
+      document.getElementById('p-password').value = p ? p.password : '';
+      document.getElementById('p-nama').value = p ? p.nama_lengkap : '';
+      document.getElementById('p-ruangan').value = p ? p.ruangan : '';
+      document.getElementById('p-sesi').value = p ? p.sesi : 'Sesi 1';
+      document.getElementById('p-expiry').value = p ? p.token_aktif_sampai : '2027-12-31 23:59:59';
+      document.getElementById('modal-proctor').classList.remove('hidden');
+    }
+    function closeProctorModal() { document.getElementById('modal-proctor').classList.add('hidden'); }
+
+    function editProctor(username) {
+      const p = state.proctors.find(x => x.username === username);
+      if (p) openProctorModal(p);
+    }
+
+    async function deleteProctor(username) {
+      const ok = await showConfirm(`Hapus proctor <strong>${username}</strong>?<br><br>Tindakan ini <strong>tidak dapat dibatalkan</strong>. Seluruh data terkait proctor ini akan hilang.`, {
+        title: 'Hapus Proctor?',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        type: 'error',
+        danger: true
+      });
+      if (!ok) return;
+      const res = await apiCall('crudProctor', { op: 'delete', username });
+      if (res.success) { showToast('Proctor dihapus.', 'success'); loadProctors(); }
+      else showToast(res.error || 'Gagal hapus', 'error');
+    }
+
+    document.getElementById('proctor-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const mode = document.getElementById('p-mode').value;
+      const data = {
+        op: mode,
+        username: document.getElementById('p-username').value.trim(),
+        password: document.getElementById('p-password').value,
+        nama_lengkap: document.getElementById('p-nama').value.trim(),
+        ruangan: document.getElementById('p-ruangan').value.trim(),
+        sesi: document.getElementById('p-sesi').value,
+        token_aktif_sampai: document.getElementById('p-expiry').value,
+        status: 'aktif'
+      };
+      const res = await apiCall('crudProctor', data);
+      if (res.success) {
+        showToast(mode === 'create' ? 'Proctor ditambahkan.' : 'Proctor diperbarui.', 'success');
+        closeProctorModal();
+        loadProctors();
+      } else showToast(res.error || 'Gagal simpan', 'error');
+    });
+
+    /* ============================================================
+       SESI CRUD
+       ============================================================ */
+    async function loadSesi() {
+      const res = await apiCall('crudSesi', { op: 'list' });
+      if (res.success) {
+        state.sesi = res.data;
+        renderSesiCards();
+      }
+    }
+
+    /* ============================================================
+       HELPER: Format tanggal & waktu (zona Jakarta WIB)
+       Google Sheets mengirim Date sebagai ISO string,
+       fungsi ini konversi ke format yang readable
+       ============================================================ */
+    function formatTanggal(val) {
+      if (!val) return '-';
+      // Jika string ISO (mengandung 'T' dan 'Z' atau '-')
+      if (typeof val === 'string' && val.includes('T')) {
+        try {
+          const d = new Date(val);
+          return d.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' });
+        } catch(e) { return val; }
+      }
+      // Jika string yyyy-mm-dd (dari GAS format baru)
+      if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        const parts = val.split('-');
+        const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        return parts[2] + ' ' + months[parseInt(parts[1])-1] + ' ' + parts[0];
+      }
+      return val;
+    }
+
+    function formatJam(val) {
+      if (!val) return '';
+      // Jika string ISO (1899-12-31T06:30:00.000Z = time-only)
+      if (typeof val === 'string' && val.includes('T')) {
+        try {
+          const d = new Date(val);
+          return d.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+        } catch(e) { return val; }
+      }
+      // Jika sudah format HH:mm
+      if (typeof val === 'string' && /^\d{2}:\d{2}$/.test(val)) {
+        return val;
+      }
+      return val;
+    }
+
+    function renderSesiCards() {
+      const c = document.getElementById('sesi-cards');
+      c.innerHTML = state.sesi.map(s => `
+        <div class="card p-5 fade-in">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <div class="text-xs text-slate-500 font-semibold uppercase">${s.kode_sesi}</div>
+              <div class="text-xl font-extrabold text-slate-900">${s.nama_sesi}</div>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full ${s.status === 'aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}">${s.status}</span>
+          </div>
+          <div class="space-y-1.5 text-sm text-slate-600">
+            <div class="flex justify-between"><span>Mata Pelajaran</span><span class="font-semibold text-slate-900">${s.mata_pelajaran || '-'}</span></div>
+            <div class="flex justify-between"><span>Tanggal</span><span class="font-semibold text-slate-900">${formatTanggal(s.tanggal)}</span></div>
+            <div class="flex justify-between"><span>Waktu</span><span class="font-semibold text-slate-900">${formatJam(s.jam_mulai)} - ${formatJam(s.jam_selesai)} WIB</span></div>
+            <div class="flex justify-between"><span>Durasi</span><span class="font-semibold text-slate-900">${s.durasi_menit} menit</span></div>
+            <div class="flex justify-between"><span>Jumlah Soal</span><span class="font-semibold text-slate-900">${s.jumlah_soal}</span></div>
+            <div class="flex justify-between"><span>Ruangan</span><span class="font-semibold text-slate-900">${s.ruangan_terkait || '-'}</span></div>
+          </div>
+          <div class="text-xs text-slate-400 mt-2">${s.keterangan || ''}</div>
+          <div class="flex gap-2 mt-4">
+            <button onclick="cetakSesi('${s.kode_sesi}')" class="flex-1 px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 text-xs font-bold hover:bg-blue-200">Cetak</button>
+            <button onclick="deleteSesi('${s.kode_sesi}')" class="px-3 py-1.5 rounded-lg bg-red-100 text-red-700 text-xs font-bold hover:bg-red-200">Hapus</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSesiModal() {
+      document.getElementById('sesi-modal-title').textContent = 'Tambah Sesi';
+      document.getElementById('s-mode').value = 'create';
+      document.getElementById('sesi-form').reset();
+      document.getElementById('modal-sesi').classList.remove('hidden');
+    }
+    function closeSesiModal() { document.getElementById('modal-sesi').classList.add('hidden'); }
+
+    async function deleteSesi(kode) {
+      const ok = await showConfirm(`Hapus sesi <strong>${kode}</strong>?<br><br>Sesi ujian ini akan dihapus permanen.`, {
+        title: 'Hapus Sesi?',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal',
+        type: 'error',
+        danger: true
+      });
+      if (!ok) return;
+      const res = await apiCall('crudSesi', { op: 'delete', kode_sesi: kode });
+      if (res.success) { showToast('Sesi dihapus.', 'success'); loadSesi(); }
+      else showToast(res.error || 'Gagal hapus', 'error');
+    }
+
+    document.getElementById('sesi-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        op: 'create',
+        kode_sesi: document.getElementById('s-kode').value,
+        nama_sesi: document.getElementById('s-nama').value,
+        tanggal: document.getElementById('s-tanggal').value,
+        jam_mulai: document.getElementById('s-mulai').value,
+        jam_selesai: document.getElementById('s-selesai').value,
+        durasi_menit: parseInt(document.getElementById('s-durasi').value),
+        mata_pelajaran: document.getElementById('s-mapel').value,
+        jumlah_soal: parseInt(document.getElementById('s-jumlah').value),
+        ruangan_terkait: document.getElementById('s-ruangan').value,
+        keterangan: document.getElementById('s-ket').value
+      };
+      const res = await apiCall('crudSesi', data);
+      if (res.success) {
+        showToast('Sesi ditambahkan.', 'success');
+        closeSesiModal();
+        loadSesi();
+      } else showToast(res.error || 'Gagal simpan', 'error');
+    });
+
+    function cetakSesi(kode) {
+      const s = state.sesi.find(x => x.kode_sesi === kode);
+      if (!s) return;
+      const html = `
+        <html><head><title>Jadwal Sesi ${s.kode_sesi}</title>
+        <style>body{font-family:'Times New Roman';padding:40px;color:#000;line-height:1.6}h1{text-align:center;text-decoration:underline}</style></head><body>
+          <h1>JADWAL SESI UJIAN</h1>
+          <p><strong>Kode Sesi:</strong> ${s.kode_sesi}</p>
+          <p><strong>Nama Sesi:</strong> ${s.nama_sesi}</p>
+          <p><strong>Mata Pelajaran:</strong> ${s.mata_pelajaran}</p>
+          <p><strong>Tanggal:</strong> ${s.tanggal}</p>
+          <p><strong>Waktu:</strong> ${s.jam_mulai} - ${s.jam_selesai} WIB (${s.durasi_menit} menit)</p>
+          <p><strong>Jumlah Soal:</strong> ${s.jumlah_soal}</p>
+          <p><strong>Ruangan:</strong> ${s.ruangan_terkait || '-'}</p>
+          <p><strong>Keterangan:</strong> ${s.keterangan || '-'}</p>
+        </body></html>`;
+      const w = window.open('', '_blank');
+      w.document.write(html); w.document.close();
+      setTimeout(() => w.print(), 500);
+    }
+
+    /* ============================================================
+       TOKEN MANAGEMENT
+       ============================================================ */
+    function loadTokens() {
+      loadProctors().then(() => {
+        const tbody = document.getElementById('token-list');
+        tbody.innerHTML = state.proctors.map(p => `
+          <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="py-2 px-3"><div class="font-semibold text-slate-900">${p.nama_lengkap}</div><div class="text-xs text-slate-500 font-mono">@${p.username}</div></td>
+            <td class="py-2 px-3 font-mono text-sm font-bold text-royal-blue">${p.token_proctor || '-'}</td>
+            <td class="py-2 px-3 text-slate-600">${p.token_aktif_sampai || '-'}</td>
+            <td class="py-2 px-3">
+              <button onclick="rotateToken('${p.username}')" class="px-3 py-1 rounded bg-lime-100 text-lime-700 text-xs font-bold hover:bg-lime-200">Rotasi Token</button>
+            </td>
+          </tr>
+        `).join('');
+      });
+    }
+
+    async function rotateToken(username) {
+      const ok = await showConfirm(`Rotasi token untuk proctor <strong>${username}</strong>?<br><br>Token lama akan <strong>tidak berlaku</strong> dan diganti dengan token baru. Proctor harus login ulang dengan token baru.`, {
+        title: '🔄 Rotasi Token?',
+        confirmText: 'Ya, Rotasi',
+        cancelText: 'Batal',
+        type: 'warning'
+      });
+      if (!ok) return;
+      // Reuse generateTokenSiswa logic — or implement as admin update
+      const p = state.proctors.find(x => x.username === username);
+      if (!p) return;
+      const newToken = 'PRC-' + Math.random().toString(36).substr(2,4).toUpperCase() + Math.random().toString(36).substr(2,4).toUpperCase() + '-2025';
+      await apiCall('crudProctor', { op: 'update', username: p.username, password: p.password, nama_lengkap: p.nama_lengkap, ruangan: p.ruangan, sesi: p.sesi, token_aktif_sampai: p.token_aktif_sampai, status: p.status });
+      p.token_proctor = newToken;
+      showToast('Token baru: ' + newToken, 'success');
+      loadTokens();
+    }
+
+    /* ============================================================
+       CETAK KARTU UJIAN
+       ============================================================ */
+    async function loadKartu() {
+      // Ambil data siswa dari spreadsheet via GAS (jika WEB_APP_URL diisi)
+      // Fallback ke DEMO_SISWA jika mode demo
+      if (CONFIG.WEB_APP_URL) {
+        try {
+          const res = await apiCall('getAllSiswa', {});
+          if (res.success && res.siswa && res.siswa.length > 0) {
+            state.siswa = res.siswa;
+          } else {
+            // Jika GAS return kosong, pakai demo
+            state.siswa = DEMO_SISWA;
+          }
+        } catch (e) {
+          console.warn('Gagal load siswa dari GAS, pakai demo:', e);
+          state.siswa = DEMO_SISWA;
+        }
+      } else {
+        // Mode demo: pakai DEMO_SISWA
+        state.siswa = DEMO_SISWA;
+      }
+      renderKartuList();
+    }
+
+    function renderKartuList() {
+      const search = (document.getElementById('kartu-search').value || '').toLowerCase();
+      const filtered = state.siswa.filter(s =>
+        s.username.toLowerCase().includes(search) ||
+        s.nama_lengkap.toLowerCase().includes(search)
+      );
+      const c = document.getElementById('kartu-list');
+      c.innerHTML = filtered.map(s => `
+        <div class="card p-4 fade-in">
+          <div class="flex items-center gap-3 mb-3">
+            <img src="${CONFIG.LOGO}" class="w-10 h-10 rounded-lg" />
+            <div>
+              <div class="font-bold text-slate-900 text-sm">${s.nama_lengkap}</div>
+              <div class="text-xs text-slate-500 font-mono">${s.username} • ${s.kelas}</div>
+            </div>
+          </div>
+          <div class="space-y-1 text-xs text-slate-600 mb-3">
+            <div class="flex justify-between"><span>Ruangan</span><span class="font-semibold">${s.ruangan}</span></div>
+            <div class="flex justify-between"><span>Sesi</span><span class="font-semibold">${s.sesi}</span></div>
+            <div class="flex justify-between"><span>Token</span><span class="font-mono font-bold text-royal-blue">${s.token_ujian}</span></div>
+          </div>
+          <button onclick="cetakKartu('${s.username}')" class="btn-neon w-full py-2 rounded-lg text-sm">Cetak Kartu</button>
+        </div>
+      `).join('');
+    }
+
+    /* ============================================================
+       CETAK KARTU UJIAN — Format F4 (Folio 215×330mm), 5 kartu per halaman
+       ============================================================ */
+
+    // Helper: build HTML untuk satu kartu (compact, F4 friendly)
+    function buildKartuHTML(s, sesi, kop) {
+      return `
+        <div class="kartu-item">
+          <div class="kartu-header">
+            <img src="${CONFIG.LOGO}" class="kartu-logo" alt="Logo" />
+            <div class="kartu-title-group">
+              <div class="kartu-title">KARTU PESERTA UJIAN</div>
+              <div class="kartu-subtitle">CBT ${kop.namaSekolah || ''}</div>
+            </div>
+          </div>
+          <div class="kartu-body">
+            <div class="kartu-data">
+              <table class="kartu-table">
+                <tr><td class="lbl">Nama</td><td class="sep">:</td><td class="val">${s.nama_lengkap || '-'}</td></tr>
+                <tr><td class="lbl">Username</td><td class="sep">:</td><td class="val mono">${s.username || '-'}</td></tr>
+                <tr><td class="lbl">Kelas</td><td class="sep">:</td><td class="val">${s.kelas || '-'}</td></tr>
+                <tr><td class="lbl">Ruangan</td><td class="sep">:</td><td class="val">${s.ruangan || '-'}</td></tr>
+                <tr><td class="lbl">Sesi</td><td class="sep">:</td><td class="val">${s.sesi || '-'}</td></tr>
+                <tr><td class="lbl">Mapel</td><td class="sep">:</td><td class="val">${sesi.mata_pelajaran || '-'}</td></tr>
+                <tr><td class="lbl">Tanggal</td><td class="sep">:</td><td class="val">${sesi.tanggal || kop.tanggalUjian || '-'}</td></tr>
+                <tr><td class="lbl">Waktu</td><td class="sep">:</td><td class="val">${sesi.jam_mulai || kop.pukul || ''} - ${sesi.jam_selesai || ''}</td></tr>
+                <tr><td class="lbl">Token</td><td class="sep">:</td><td class="val token">${s.token_ujian || '-'}</td></tr>
+              </table>
+            </div>
+            <div class="kartu-photo">
+              <div class="photo-box">Foto 3×4</div>
+              <div class="ttd-box">
+                <div class="ttd-line"></div>
+                <div class="ttd-label">TTD Panitia</div>
+              </div>
+            </div>
+          </div>
+          <div class="kartu-footer">
+            ${kop.namaSekolah || 'SCBT Integrated System'} • NPSN: ${kop.npsn || '-'} • ${kop.kabupaten || ''}, ${kop.provinsi || ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // Helper: build CSS untuk cetak F4 (8 kartu per halaman — 2 kolom × 4 baris)
+    function buildKartuCSS() {
+      return `
+        <style>
+          @page {
+            size: 215mm 330mm;  /* F4 / Folio */
+            margin: 8mm;
+          }
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            color: #000;
+            margin: 0; padding: 0;
+            background: #fff;
+          }
+          /* Grid 2 kolom × 4 baris = 8 kartu per halaman */
+          .kartu-page {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3mm;
+            width: 100%;
+          }
+          .kartu-item {
+            border: 2px solid #1e3a8a;
+            border-radius: 6px;
+            overflow: hidden;
+            height: 75mm;  /* (314mm - 3*3mm) / 4 ≈ 76mm, pakai 75mm untuk safety */
+            display: flex;
+            flex-direction: column;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .kartu-header {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            padding: 2mm 3mm;
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+            flex-shrink: 0;
+          }
+          .kartu-logo {
+            width: 9mm; height: 9mm;
+            background: white;
+            padding: 1mm;
+            border-radius: 2mm;
+            flex-shrink: 0;
+          }
+          .kartu-title-group { flex: 1; }
+          .kartu-title {
+            font-size: 10pt;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            line-height: 1.1;
+          }
+          .kartu-subtitle {
+            font-size: 7.5pt;
+            opacity: 0.9;
+            line-height: 1.1;
+          }
+          .kartu-body {
+            flex: 1;
+            display: flex;
+            padding: 2mm 3mm;
+            gap: 2mm;
+            overflow: hidden;
+          }
+          .kartu-data { flex: 1; min-width: 0; }
+          .kartu-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+          }
+          .kartu-table td {
+            padding: 0.6mm 0;
+            line-height: 1.15;
+            vertical-align: top;
+          }
+          .kartu-table .lbl { font-weight: 600; width: 18mm; white-space: nowrap; }
+          .kartu-table .sep { width: 2mm; }
+          .kartu-table .val { font-weight: 500; word-break: break-word; }
+          .kartu-table .val.mono { font-family: 'Courier New', monospace; font-size: 8pt; }
+          .kartu-table .val.token {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 9pt;
+            letter-spacing: 0.3px;
+          }
+          .kartu-photo {
+            width: 22mm;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 1mm;
+          }
+          .photo-box {
+            width: 20mm; height: 26mm;
+            border: 1.5px solid #1e3a8a;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 7pt;
+            text-align: center;
+          }
+          .ttd-box { text-align: center; margin-top: 1.5mm; }
+          .ttd-line {
+            width: 20mm;
+            border-top: 1px dashed #475569;
+            margin: 0 auto 0.5mm;
+          }
+          .ttd-label { font-size: 7pt; color: #475569; }
+          .kartu-footer {
+            background: #f1f5f9;
+            padding: 1mm 3mm;
+            font-size: 7pt;
+            color: #64748b;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+          }
+          .page-break { page-break-after: always; break-after: page; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      `;
+    }
+
+    // Mode 1: Cetak 1 siswa → F4 dengan 8 kartu identik (2 kolom × 4 baris)
+    async function cetakKartu(username) {
+      const res = await apiCall('getKartuUjian', { username });
+      if (!res.success) { showToast('Data siswa tidak ditemukan', 'error'); return; }
+      const s = res.siswa;
+      const sesi = res.sesi || {};
+      const kop = getKopConfig();
+
+      // Generate 8 kartu identik dalam 1 halaman F4 (grid 2×4)
+      const kartuHTML = Array(8).fill(0).map(() => buildKartuHTML(s, sesi, kop)).join('');
+
+      const html = `
+        <html><head><title>Kartu Ujian - ${s.nama_lengkap}</title>
+        ${buildKartuCSS()}</head><body>
+          <div class="kartu-page">
+            ${kartuHTML}
+          </div>
+        </body></html>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
+    }
+
+    // Mode 2: Cetak massal → F4 dengan 8 kartu per halaman, paginate otomatis
+    async function printAllKartu() {
+      const kop = getKopConfig();
+      let siswaList = state.siswa;
+      if (!siswaList || siswaList.length === 0) {
+        showToast('Daftar siswa kosong. Pastikan data sudah dimuat.', 'warning');
+        return;
+      }
+
+      const allKartuHTML = [];
+      for (const s of siswaList) {
+        const res = await apiCall('getKartuUjian', { username: s.username });
+        const sesi = (res.success && res.sesi) ? res.sesi : {};
+        allKartuHTML.push(buildKartuHTML(s, sesi, kop));
+      }
+
+      // Paginate: 8 kartu per halaman (grid 2×4)
+      const KARTU_PER_HALAMAN = 8;
+      let pagesHTML = '';
+      for (let i = 0; i < allKartuHTML.length; i += KARTU_PER_HALAMAN) {
+        const chunk = allKartuHTML.slice(i, i + KARTU_PER_HALAMAN);
+        const isLast = (i + KARTU_PER_HALAMAN) >= allKartuHTML.length;
+        pagesHTML += `<div class="kartu-page${isLast ? '' : ' page-break'}">${chunk.join('')}</div>`;
+      }
+
+      const html = `
+        <html><head><title>Cetak Massal Kartu Ujian (${siswaList.length} siswa)</title>
+        ${buildKartuCSS()}</head><body>
+          ${pagesHTML}
+        </body></html>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 800);
+    }
+
+
+    /* ============================================================
+       PENGATURAN SOAL — Admin set default, Proctor bisa override
+       ============================================================ */
+    async function loadSoalMode() {
+      try {
+        const res = await apiCall('getSoalMode', {});
+        if (res.success) {
+          if (res.mode === 'gform') {
+            document.getElementById('mode-gform').checked = true;
+            document.getElementById('gform-url-input').value = res.gform_url || '';
+            showGformSection();
+          } else {
+            document.getElementById('mode-cbt').checked = true;
+            if (res.soal_id) {
+              await loadSoalOptions(res.soal_id);
+            }
+            showCbtSection();
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal load soal mode:', e);
+      }
+    }
+
+    async function loadSoalOptions(selectedId) {
+      try {
+        const res = await apiCall('getAllSoal', {});
+        if (res.success && res.soal) {
+          const sel = document.getElementById('soal-id-select');
+          sel.innerHTML = '<option value="">— Pilih Paket Soal —</option>';
+          res.soal.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            var label = s.nama_paket || (s.mata_pelajaran + ' • ' + (s.tipe || 'pg'));
+            opt.textContent = label + ' (' + (s.jumlah_soal || '?') + ' soal)';
+            if (s.id === selectedId) opt.selected = true;
+            sel.appendChild(opt);
+          });
+        }
+      } catch (e) {
+        console.warn('Gagal load soal options:', e);
+      }
+    }
+
+    function showCbtSection() {
+      document.getElementById('cbt-soal-section').classList.remove('hidden');
+      document.getElementById('gform-url-section').classList.add('hidden');
+    }
+
+    function showGformSection() {
+      document.getElementById('cbt-soal-section').classList.add('hidden');
+      document.getElementById('gform-url-section').classList.remove('hidden');
+    }
+
+    // Listener untuk radio button
+    document.addEventListener('DOMContentLoaded', function() {
+      const cbtRadio = document.getElementById('mode-cbt');
+      const gformRadio = document.getElementById('mode-gform');
+      if (cbtRadio) cbtRadio.addEventListener('change', showCbtSection);
+      if (gformRadio) gformRadio.addEventListener('change', showGformSection);
+    });
+
+    async function saveSoalModeAdmin() {
+      const mode = document.querySelector('input[name="soal-mode"]:checked')?.value || 'cbt';
+      const soalId = mode === 'cbt' ? (document.getElementById('soal-id-select')?.value || '') : '';
+      const gformUrl = mode === 'gform' ? (document.getElementById('gform-url-input')?.value || '') : '';
+      
+      const res = await apiCall('saveSoalMode', {
+        ruangan: '', // Admin = default
+        mode: mode,
+        soal_id: soalId,
+        gform_url: gformUrl
+      });
+      if (res.success) {
+        showToast('Pengaturan soal default tersimpan!', 'success');
+      } else {
+        showToast(res.error || 'Gagal simpan', 'error');
+      }
+    }
+
+
+    /* ============================================================
+       GENERATE TOKEN — Admin & Proctor bisa generate custom
+       ============================================================ */
+    let tokenSiswaList = [];
+
+    async function loadTokenSiswaList() {
+      try {
+        const res = await apiCall('getAllSiswa', {});
+        if (res.success && res.siswa) {
+          tokenSiswaList = res.siswa;
+          const sel = document.getElementById('gen-token-siswa');
+          if (!sel) return;
+          sel.innerHTML = '<option value="">— Pilih Siswa —</option><option value="ALL">📊 Semua Siswa (Massal)</option>';
+          res.siswa.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.username;
+            opt.textContent = s.nama_lengkap + ' (' + s.username + ') — Token: ' + (s.token_ujian || 'belum ada');
+            sel.appendChild(opt);
+          });
+        }
+      } catch (e) { console.warn('Gagal load siswa untuk token:', e); }
+    }
+
+    // Toggle custom/auto
+    document.addEventListener('DOMContentLoaded', function() {
+      const autoRadio = document.getElementById('token-mode-auto');
+      const customRadio = document.getElementById('token-mode-custom');
+      if (autoRadio) autoRadio.addEventListener('change', function() {
+        document.getElementById('custom-token-section').classList.add('hidden');
+        document.getElementById('auto-token-section').classList.remove('hidden');
+      });
+      if (customRadio) customRadio.addEventListener('change', function() {
+        document.getElementById('custom-token-section').classList.remove('hidden');
+        document.getElementById('auto-token-section').classList.add('hidden');
+      });
+    });
+
+    function genRandomToken(prefix) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let s = '';
+      for (let i = 0; i < 4; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+      return (prefix || 'TKN') + '-' + s + '-' + new Date().getFullYear();
+    }
+
+    async function generateTokenAdmin() {
+      const target = document.getElementById('gen-token-siswa')?.value || '';
+      if (!target) { showToast('Pilih siswa atau "Semua Siswa" dulu.', 'error'); return; }
+      
+      const mode = document.querySelector('input[name="token-gen-mode"]:checked')?.value || 'auto';
+      const customToken = document.getElementById('custom-token-value')?.value || '';
+      const prefix = document.getElementById('token-prefix')?.value || 'TKN';
+      
+      if (mode === 'custom' && !customToken) {
+        showToast('Isi token custom dulu.', 'error'); return;
+      }
+      
+      const ok = await showConfirm(
+        target === 'ALL' ? 'Generate token untuk SEMUA siswa?' : 'Generate token untuk siswa ini?',
+        { title: 'Generate Token?', confirmText: 'Ya, Generate', type: 'question' }
+      );
+      if (!ok) return;
+      
+      const resultDiv = document.getElementById('gen-token-result');
+      const listDiv = document.getElementById('gen-token-list');
+      resultDiv.classList.add('hidden');
+      
+      if (target === 'ALL') {
+        // Massal
+        const results = [];
+        for (const s of tokenSiswaList) {
+          const token = mode === 'custom' ? customToken : genRandomToken(prefix);
+          const res = await apiCall('generateTokenSiswa', { username: s.username, token: token });
+          if (res.success) {
+            results.push({ username: s.username, nama: s.nama_lengkap, token: token });
+          }
+        }
+        listDiv.innerHTML = results.map(r => `<div>✓ ${r.nama} (${r.username}) → <strong>${r.token}</strong></div>`).join('');
+        resultDiv.classList.remove('hidden');
+        showToast(`Berhasil generate ${results.length} token!`, 'success');
+      } else {
+        // Per siswa
+        const token = mode === 'custom' ? customToken : genRandomToken(prefix);
+        const res = await apiCall('generateTokenSiswa', { username: target, token: token });
+        if (res.success) {
+          listDiv.innerHTML = `<div>✓ Token baru: <strong>${res.token || token}</strong></div>`;
+          resultDiv.classList.remove('hidden');
+          showToast('Token berhasil dibuat!', 'success');
+          loadTokenSiswaList(); // refresh dropdown
+        } else {
+          showToast(res.error || 'Gagal generate token', 'error');
+        }
+      }
+    }
+
+    function copyAllTokens() {
+      const list = document.getElementById('gen-token-list');
+      if (!list) return;
+      const text = list.innerText;
+      navigator.clipboard.writeText(text).then(() => showToast('Token disalin ke clipboard!', 'success'));
+    }
+
+    /* ============================================================
+       DAFTAR HADIR
+       ============================================================ */
+    async function loadHadir() {
+      // Populate filter
+      const ruanganSel = document.getElementById('hadir-ruangan');
+      const sesiSel = document.getElementById('hadir-sesi');
+      const uniqueRuangan = [...new Set(DEMO_SISWA.map(s => s.ruangan))];
+      const uniqueSesi = [...new Set(DEMO_SISWA.map(s => s.sesi))];
+      ruanganSel.innerHTML = '<option value="">Semua Ruangan</option>' + uniqueRuangan.map(r => `<option value="${r}">${r}</option>`).join('');
+      sesiSel.innerHTML = '<option value="">Semua Sesi</option>' + uniqueSesi.map(s => `<option value="${s}">${s}</option>`).join('');
+      renderHadirTable();
+      [ruanganSel, sesiSel].forEach(el => el.onchange = renderHadirTable);
+    }
+
+    async function renderHadirTable() {
+      const ruangan = document.getElementById('hadir-ruangan').value;
+      const sesi = document.getElementById('hadir-sesi').value;
+      const res = await apiCall('getDaftarHadir', { ruangan, sesi });
+      if (!res.success) return;
+      const tbody = document.getElementById('hadir-tbody');
+      tbody.innerHTML = res.data.map((s, i) => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="py-2 px-3 text-slate-500">${i + 1}</td>
+          <td class="py-2 px-3 font-mono text-slate-700">${s.username}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${s.nama_lengkap}</td>
+          <td class="py-2 px-3 text-slate-600">${s.kelas}</td>
+          <td class="py-2 px-3 text-slate-600">${s.ruangan}</td>
+          <td class="py-2 px-3 text-slate-600">${s.sesi}</td>
+          <td class="py-2 px-3"><span class="text-xs px-2 py-0.5 rounded-full ${s.status_hadir === 'hadir' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${s.status_hadir}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    /* ============================================================
+       KOP CONFIG (persisten di localStorage)
+       ============================================================ */
+    const KOP_DEFAULTS = {
+      namaSekolah: 'SMA Negeri 1 Contoh',
+      npsn: '20100123',
+      kabupaten: 'Moga',
+      provinsi: 'Jawa Tengah',
+      hari: 'Senin',
+      tanggalUjian: '15 Oktober 2025',
+      pukul: '08:00 - 09:30',
+      alokasi: '90 menit',
+      mode: 'Online',
+      namaKepsek: 'Drs. Budi, M.Pd.',
+      nipKepsek: '19650101 199001 1 001',
+      namaProktor: 'Budi Santoso, S.Pd.',
+      nipProktor: '19800101 200501 1 001',
+      namaPengawas: 'Siti Aminah, S.Pd.',
+      nipPengawas: '19850101 200801 2 002'
+    };
+    const KOP_STORAGE_KEY = 'cbt_kop_config';
+
+    function loadKopConfig() {
+      let cfg = KOP_DEFAULTS;
+      try {
+        const saved = JSON.parse(localStorage.getItem(KOP_STORAGE_KEY) || 'null');
+        if (saved) cfg = Object.assign(KOP_DEFAULTS, saved);
+      } catch (e) {}
+      // Isi field-field form
+      const map = {
+        'kop-nama-sekolah': cfg.namaSekolah,
+        'kop-npsn': cfg.npsn,
+        'kop-kabupaten': cfg.kabupaten,
+        'kop-provinsi': cfg.provinsi,
+        'kop-hari': cfg.hari,
+        'kop-tanggal-ujian': cfg.tanggalUjian,
+        'kop-pukul': cfg.pukul,
+        'kop-alokasi': cfg.alokasi,
+        'kop-mode': cfg.mode,
+        'kop-nama-kepsek': cfg.namaKepsek,
+        'kop-nip-kepsek': cfg.nipKepsek,
+        'kop-nama-proktor': cfg.namaProktor,
+        'kop-nip-proktor': cfg.nipProktor,
+        'kop-nama-pengawas': cfg.namaPengawas,
+        'kop-nip-pengawas': cfg.nipPengawas
+      };
+      for (const id in map) {
+        const el = document.getElementById(id);
+        if (el) el.value = map[id] || '';
+      }
+      return cfg;
+    }
+
+    function simpanKopConfig() {
+      const cfg = {
+        namaSekolah: document.getElementById('kop-nama-sekolah').value.trim(),
+        npsn: document.getElementById('kop-npsn').value.trim(),
+        kabupaten: document.getElementById('kop-kabupaten').value.trim(),
+        provinsi: document.getElementById('kop-provinsi').value.trim(),
+        hari: document.getElementById('kop-hari').value.trim(),
+        tanggalUjian: document.getElementById('kop-tanggal-ujian').value.trim(),
+        pukul: document.getElementById('kop-pukul').value.trim(),
+        alokasi: document.getElementById('kop-alokasi').value.trim(),
+        mode: document.getElementById('kop-mode').value.trim() || 'Online',
+        namaKepsek: document.getElementById('kop-nama-kepsek').value.trim(),
+        nipKepsek: document.getElementById('kop-nip-kepsek').value.trim(),
+        namaProktor: document.getElementById('kop-nama-proktor').value.trim(),
+        nipProktor: document.getElementById('kop-nip-proktor').value.trim(),
+        namaPengawas: document.getElementById('kop-nama-pengawas').value.trim(),
+        nipPengawas: document.getElementById('kop-nip-pengawas').value.trim()
+      };
+      localStorage.setItem(KOP_STORAGE_KEY, JSON.stringify(cfg));
+      showToast('Konfigurasi kop & penandatangan tersimpan!', 'success');
+    }
+
+    async function resetKopConfig() {
+      const ok = await showConfirm('Reset semua field konfigurasi kop & TTD ke nilai default?<br><br>Perubahan yang sudah Anda simpan akan hilang.', {
+        title: 'Reset Konfigurasi?',
+        confirmText: 'Ya, Reset',
+        cancelText: 'Batal',
+        type: 'warning'
+      });
+      if (!ok) return;
+      localStorage.removeItem(KOP_STORAGE_KEY);
+      loadKopConfig();
+      showToast('Konfigurasi direset ke default.', 'info');
+    }
+
+    function getKopConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KOP_STORAGE_KEY) || 'null');
+        if (saved) return Object.assign(KOP_DEFAULTS, saved);
+      } catch (e) {}
+      return KOP_DEFAULTS;
+    }
+
+    /* ============================================================
+       HELPER: Toggle "Daftar Hadir Susulan"
+       ============================================================ */
+    function toggleSusulan(checkbox, prefix) {
+      const checked = checkbox.checked;
+      const btn = document.querySelector(`#${prefix}-susulan`).closest('label');
+      if (checked) {
+        btn.classList.add('bg-amber-50', 'border-amber-400');
+        showToast('Mode "Daftar Hadir Susulan" aktif. Judul akan diberi label SUSULAN.', 'info');
+      } else {
+        btn.classList.remove('bg-amber-50', 'border-amber-400');
+      }
+    }
+
+    /* ============================================================
+       CETAK DAFTAR HADIR (revisi layout 2 kolom + 3 TTD)
+       ============================================================ */
+    function cetakDaftarHadir() {
+      const ruangan = document.getElementById('hadir-ruangan').value;
+      const sesi = document.getElementById('hadir-sesi').value;
+      const kop = getKopConfig();
+      const isSusulan = document.getElementById('hadir-susulan').checked;
+      const susulanLabel = isSusulan ? ' <span style="color:#dc2626;font-weight:bold;">(SUSULAN)</span>' : '';
+      const susulanTitle = isSusulan ? ' SUSULAN' : '';
+
+      apiCall('getDaftarHadir', { ruangan, sesi }).then(res => {
+        if (!res.success) {
+          showToast('Gagal memuat data daftar hadir', 'error');
+          return;
+        }
+        const rows = res.data.map((s, i) => `
+          <tr>
+            <td style="text-align:center">${i + 1}</td>
+            <td style="text-align:center">${s.username || '-'}</td>
+            <td>${s.nama_lengkap || '-'}</td>
+            <td style="text-align:center">${s.kelas || '-'}</td>
+            <td style="height:36px"></td>
+            <td style="text-align:center">${s.status_hadir || 'hadir'}</td>
+          </tr>`).join('');
+
+        // Ambil kelas & ruang dari data pertama (jika ada) atau dari filter
+        const firstData = res.data[0] || {};
+        const kelasTampil = firstData.kelas || '-';
+        const ruangTampil = ruangan || firstData.ruangan || '-';
+        const sesiTampil = sesi || firstData.sesi || 'Semua Sesi';
+
+        const html = `
+        <html><head><title>Daftar Hadir${susulanTitle} - ${ruangTampil} - ${sesiTampil}</title>
+        <style>
+          @page { margin: 1.5cm; }
+          body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; padding: 10px; }
+          /* KOP ATAS */
+          .kop-atas { display: flex; align-items: center; gap: 18px; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 8px; }
+          .kop-logo { width: 80px; height: 80px; flex-shrink: 0; }
+          .kop-teks { flex: 1; text-align: center; }
+          .kop-teks h1 { font-size: 18px; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px; }
+          .kop-teks h2 { font-size: 20px; font-weight: bold; text-transform: uppercase; margin: 2px 0; letter-spacing: 0.5px; }
+          .kop-teks .alamat { font-size: 11px; margin-top: 2px; }
+          .kop-teks .npsn-line { font-size: 11px; margin-top: 1px; }
+          /* JUDUL */
+          .judul-berkas { text-align: center; margin: 18px 0 10px; }
+          .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; letter-spacing: 0.5px; }
+          /* INFO 2 KOLOM */
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #000; margin-bottom: 12px; font-size: 12px; }
+          .info-col { padding: 8px 12px; }
+          .info-col.left { border-right: 1px solid #000; }
+          .info-row { display: flex; margin: 2px 0; }
+          .info-row .label { width: 140px; font-weight: bold; }
+          .info-row .sep { width: 12px; }
+          .info-row .value { flex: 1; }
+          /* TABEL */
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+          th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
+          th { background: #e2e8f0; font-weight: bold; text-align: center; }
+          /* TTD */
+          .ttd-section { margin-top: 40px; }
+          .ttd-row { display: flex; justify-content: space-between; }
+          .ttd-box { width: 32%; text-align: center; font-size: 12px; }
+          .ttd-box .jabatan { margin-bottom: 60px; }
+          .ttd-box .nama { font-weight: bold; text-decoration: underline; }
+          .ttd-box .nip { margin-top: 2px; }
+          .ttd-kepsek-center { width: 33%; margin: 30px auto 0; text-align: center; font-size: 12px; }
+          .ttd-kepsek-center .jabatan { margin-bottom: 60px; }
+          .ttd-kepsek-center .nama { font-weight: bold; text-decoration: underline; }
+          .ttd-kepsek-center .nip { margin-top: 2px; }
+          .footer-cbt { text-align: center; font-size: 9px; color: #64748b; margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+        </style></head><body>
+
+          <!-- KOP ATAS -->
+          <div class="kop-atas">
+            <img src="${CONFIG.LOGO}" class="kop-logo" alt="Logo" />
+            <div class="kop-teks">
+              <h1>Pemerintah Kabupaten ${kop.kabupaten}</h1>
+              <h1>Dinas Pendidikan</h1>
+              <h2>${kop.namaSekolah}</h2>
+              <div class="alamat">Alamat: Jl. Pendidikan No. 1, Kec. ${kop.kabupaten}, Kab. ${kop.kabupaten}, Prov. ${kop.provinsi}</div>
+              <div class="npsn-line">NPSN: ${kop.npsn} • Telp. (0281) 123456 • Email: ${kop.namaSekolah.toLowerCase().replace(/\s/g,'')}@sch.id</div>
+            </div>
+          </div>
+
+          <!-- JUDUL -->
+          <div class="judul-berkas">
+            <h3>DAFTAR HADIR${susulanTitle} PESERTA UJIAN</h3>
+            <div style="font-size: 11px; margin-top: 2px;">${isSusulan ? '<span style="color:#dc2626;font-weight:bold;">Ⓢ Daftar Hadir Susulan</span> • ' : ''}Mode Pelaksanaan: ${kop.mode}</div>
+          </div>
+
+          <!-- INFO 2 KOLOM -->
+          <div class="info-grid">
+            <!-- KOLOM KIRI -->
+            <div class="info-col left">
+              <div class="info-row"><span class="label">Nama Sekolah</span><span class="sep">:</span><span class="value">${kop.namaSekolah}</span></div>
+              <div class="info-row"><span class="label">Kabupaten</span><span class="sep">:</span><span class="value">${kop.kabupaten}</span></div>
+              <div class="info-row"><span class="label">Provinsi</span><span class="sep">:</span><span class="value">${kop.provinsi}</span></div>
+              <div class="info-row"><span class="label">Sesi</span><span class="sep">:</span><span class="value">${sesiTampil}</span></div>
+              <div class="info-row"><span class="label">Mode Pelaksanaan</span><span class="sep">:</span><span class="value">${kop.mode}</span></div>
+              <div class="info-row"><span class="label">Kelas</span><span class="sep">:</span><span class="value">${kelasTampil}</span></div>
+            </div>
+            <!-- KOLOM KANAN -->
+            <div class="info-col">
+              <div class="info-row"><span class="label">NPSN</span><span class="sep">:</span><span class="value">${kop.npsn}</span></div>
+              <div class="info-row"><span class="label">Ruang</span><span class="sep">:</span><span class="value">${ruangTampil}</span></div>
+              <div class="info-row"><span class="label">Alokasi Waktu</span><span class="sep">:</span><span class="value">${kop.alokasi}</span></div>
+              <div class="info-row"><span class="label">Pukul</span><span class="sep">:</span><span class="value">${kop.pukul}</span></div>
+              <div class="info-row"><span class="label">Hari</span><span class="sep">:</span><span class="value">${kop.hari}</span></div>
+              <div class="info-row"><span class="label">Tanggal</span><span class="sep">:</span><span class="value">${kop.tanggalUjian}</span></div>
+            </div>
+          </div>
+
+          <!-- TABEL DAFTAR HADIR -->
+          <table>
+            <thead>
+              <tr>
+                <th style="width:35px">No</th>
+                <th style="width:90px">Username</th>
+                <th>Nama Lengkap</th>
+                <th style="width:70px">Kelas</th>
+                <th style="width:180px">Tanda Tangan</th>
+                <th style="width:80px">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows || '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px">Tidak ada data peserta untuk filter ini</td></tr>'}
+            </tbody>
+          </table>
+
+          <!-- TANDA TANGAN -->
+          <div class="ttd-section">
+            <div class="ttd-row">
+              <div class="ttd-box">
+                <div class="jabatan">Proktor,<br />&nbsp;</div>
+                <div class="nama">${kop.namaProktor || '(...........................)'}</div>
+                <div class="nip">NIP. ${kop.nipProktor || '...........................'}</div>
+              </div>
+              <div class="ttd-box">
+                <div class="jabatan">Pengawas,<br />&nbsp;</div>
+                <div class="nama">${kop.namaPengawas || '(...........................)'}</div>
+                <div class="nip">NIP. ${kop.nipPengawas || '...........................'}</div>
+              </div>
+            </div>
+            <!-- TTD Kepala Sekolah di tengah bawah -->
+            <div class="ttd-kepsek-center">
+              <div class="jabatan">Mengetahui,<br />Kepala Sekolah</div>
+              <div class="nama">${kop.namaKepsek || '(...........................)'}</div>
+              <div class="nip">NIP. ${kop.nipKepsek || '...........................'}</div>
+            </div>
+          </div>
+
+          <div class="footer-cbt">SCBT Integrated System • v1.1 | Developed by MB • yanuar.b@gmail.com</div>
+        </body></html>`;
+
+        const w = window.open('', '_blank');
+        w.document.write(html);
+        w.document.close();
+        setTimeout(() => w.print(), 600);
+      });
+    }
+
+
+    /* ============================================================
+       DAFTAR HADIR PANITIA (Teknisi, Proktor, Pengawas)
+       ============================================================ */
+    const PANITIA_STORAGE_KEY = 'cbt_panitia_list';
+
+    function loadPanitiaData() {
+      // Load saved list dari localStorage
+      let saved = { teknisi: '', proktor: '', pengawas: '' };
+      try {
+        const s = JSON.parse(localStorage.getItem(PANITIA_STORAGE_KEY) || 'null');
+        if (s) saved = Object.assign(saved, s);
+      } catch (e) {}
+      document.getElementById('panitia-teknisi').value = saved.teknisi || '';
+      document.getElementById('panitia-pengawas').value = saved.pengawas || '';
+      // Auto-load proktor dari database
+      apiCall('crudProctor', { op: 'list' }).then(res => {
+        if (res.success && res.data) {
+          const proktorNames = res.data.map(p => p.nama_lengkap).filter(n => n).join('\n');
+          // Jika saved.proktor kosong, isi dengan auto-load
+          if (!saved.proktor || saved.proktor.trim() === '') {
+            document.getElementById('panitia-proktor').value = proktorNames;
+          } else {
+            document.getElementById('panitia-proktor').value = saved.proktor;
+          }
+        } else {
+          // Mode demo: pakai DEMO_PROCTORS
+          const proktorNames = (typeof DEMO_PROCTORS !== 'undefined' ? DEMO_PROCTORS : []).map(p => p.nama_lengkap).filter(n => n).join('\n');
+          if (!saved.proktor || saved.proktor.trim() === '') {
+            document.getElementById('panitia-proktor').value = proktorNames;
+          } else {
+            document.getElementById('panitia-proktor').value = saved.proktor;
+          }
+        }
+        updatePanitiaCount();
+      });
+    }
+
+    function reloadProktorList() {
+      apiCall('crudProctor', { op: 'list' }).then(res => {
+        if (res.success && res.data) {
+          const proktorNames = res.data.map(p => p.nama_lengkap).filter(n => n).join('\n');
+          document.getElementById('panitia-proktor').value = proktorNames;
+          showToast('Daftar proktor dimuat ulang dari database.', 'success');
+        } else {
+          const proktorNames = (typeof DEMO_PROCTORS !== 'undefined' ? DEMO_PROCTORS : []).map(p => p.nama_lengkap).filter(n => n).join('\n');
+          document.getElementById('panitia-proktor').value = proktorNames;
+          showToast('Daftar proktor dimuat (mode demo).', 'info');
+        }
+        updatePanitiaCount();
+      });
+    }
+
+    function simpanPanitiaList() {
+      const data = {
+        teknisi: document.getElementById('panitia-teknisi').value,
+        proktor: document.getElementById('panitia-proktor').value,
+        pengawas: document.getElementById('panitia-pengawas').value
+      };
+      localStorage.setItem(PANITIA_STORAGE_KEY, JSON.stringify(data));
+      showToast('Daftar panitia tersimpan!', 'success');
+    }
+
+    function parseNamaList(text) {
+      if (!text) return [];
+      return text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    function updatePanitiaCount() {
+      const t = parseNamaList(document.getElementById('panitia-teknisi').value);
+      const p = parseNamaList(document.getElementById('panitia-pengawas').value);
+      document.getElementById('teknisi-count').textContent = t.length;
+      document.getElementById('pengawas-count').textContent = p.length;
+    }
+
+    // Listener untuk update counter saat user mengetik
+    document.addEventListener('DOMContentLoaded', () => {
+      const tEl = document.getElementById('panitia-teknisi');
+      const pEl = document.getElementById('panitia-pengawas');
+      if (tEl) tEl.addEventListener('input', updatePanitiaCount);
+      if (pEl) pEl.addEventListener('input', updatePanitiaCount);
+    });
+
+    function cetakDaftarHadirPanitia() {
+      const kop = getKopConfig();
+      const teknisiList = parseNamaList(document.getElementById('panitia-teknisi').value);
+      const proktorList = parseNamaList(document.getElementById('panitia-proktor').value);
+      const pengawasList = parseNamaList(document.getElementById('panitia-pengawas').value);
+      const isSusulan = document.getElementById('panitia-susulan').checked;
+      const susulanTitle = isSusulan ? ' SUSULAN' : '';
+
+      if (teknisiList.length === 0 && proktorList.length === 0 && pengawasList.length === 0) {
+        showToast('Daftar panitia kosong. Silakan isi minimal satu nama.', 'error');
+        return;
+      }
+
+      // Build tabel rows
+      let nomor = 1;
+      let rowsHtml = '';
+
+      // Section Teknisi
+      if (teknisiList.length > 0) {
+        rowsHtml += `<tr><td colspan="5" style="background:#dbeafe;font-weight:bold;text-align:left;padding:6px 8px;">A. TEKNISI</td></tr>`;
+        teknisiList.forEach(nama => {
+          rowsHtml += `<tr>
+            <td style="text-align:center">${nomor++}</td>
+            <td>${nama}</td>
+            <td style="text-align:center">Teknisi</td>
+            <td style="height:36px"></td>
+            <td style="text-align:center">Hadir</td>
+          </tr>`;
+        });
+      }
+
+      // Section Proktor
+      if (proktorList.length > 0) {
+        rowsHtml += `<tr><td colspan="5" style="background:#dcfce7;font-weight:bold;text-align:left;padding:6px 8px;">B. PROKTOR</td></tr>`;
+        proktorList.forEach(nama => {
+          rowsHtml += `<tr>
+            <td style="text-align:center">${nomor++}</td>
+            <td>${nama}</td>
+            <td style="text-align:center">Proktor</td>
+            <td style="height:36px"></td>
+            <td style="text-align:center">Hadir</td>
+          </tr>`;
+        });
+      }
+
+      // Section Pengawas
+      if (pengawasList.length > 0) {
+        rowsHtml += `<tr><td colspan="5" style="background:#fef3c7;font-weight:bold;text-align:left;padding:6px 8px;">C. PENGAWAS</td></tr>`;
+        pengawasList.forEach(nama => {
+          rowsHtml += `<tr>
+            <td style="text-align:center">${nomor++}</td>
+            <td>${nama}</td>
+            <td style="text-align:center">Pengawas</td>
+            <td style="height:36px"></td>
+            <td style="text-align:center">Hadir</td>
+          </tr>`;
+        });
+      }
+
+      if (nomor === 1) {
+        rowsHtml = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:20px">Tidak ada data panitia</td></tr>';
+      }
+
+      const totalPanitia = (teknisiList.length + proktorList.length + pengawasList.length);
+      const ruangTampil = 'Semua Ruangan';
+      const sesiTampil = 'Semua Sesi';
+
+      const html = `
+      <html><head><title>Daftar Hadir Panitia${susulanTitle}</title>
+      <style>
+        @page { margin: 1.5cm; }
+        body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; padding: 10px; }
+        .kop-atas { display: flex; align-items: center; gap: 18px; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 8px; }
+        .kop-logo { width: 80px; height: 80px; flex-shrink: 0; }
+        .kop-teks { flex: 1; text-align: center; }
+        .kop-teks h1 { font-size: 18px; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px; }
+        .kop-teks h2 { font-size: 20px; font-weight: bold; text-transform: uppercase; margin: 2px 0; letter-spacing: 0.5px; }
+        .kop-teks .alamat { font-size: 11px; margin-top: 2px; }
+        .kop-teks .npsn-line { font-size: 11px; margin-top: 1px; }
+        .judul-berkas { text-align: center; margin: 18px 0 10px; }
+        .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; letter-spacing: 0.5px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #000; margin-bottom: 12px; font-size: 12px; }
+        .info-col { padding: 8px 12px; }
+        .info-col.left { border-right: 1px solid #000; }
+        .info-row { display: flex; margin: 2px 0; }
+        .info-row .label { width: 140px; font-weight: bold; }
+        .info-row .sep { width: 12px; }
+        .info-row .value { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
+        th { background: #e2e8f0; font-weight: bold; text-align: center; }
+        .ttd-section { margin-top: 40px; }
+        .ttd-row { display: flex; justify-content: space-between; }
+        .ttd-box { width: 32%; text-align: center; font-size: 12px; }
+        .ttd-box .jabatan { margin-bottom: 60px; }
+        .ttd-box .nama { font-weight: bold; text-decoration: underline; }
+        .ttd-box .nip { margin-top: 2px; }
+        .ttd-kepsek-center { width: 33%; margin: 30px auto 0; text-align: center; font-size: 12px; }
+        .ttd-kepsek-center .jabatan { margin-bottom: 60px; }
+        .ttd-kepsek-center .nama { font-weight: bold; text-decoration: underline; }
+        .ttd-kepsek-center .nip { margin-top: 2px; }
+        .footer-cbt { text-align: center; font-size: 9px; color: #64748b; margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+      </style></head><body>
+
+        <!-- KOP ATAS -->
+        <div class="kop-atas">
+          <img src="${CONFIG.LOGO}" class="kop-logo" alt="Logo" />
+          <div class="kop-teks">
+            <h1>Pemerintah Kabupaten ${kop.kabupaten}</h1>
+            <h1>Dinas Pendidikan</h1>
+            <h2>${kop.namaSekolah}</h2>
+            <div class="alamat">Alamat: Jl. Pendidikan No. 1, Kec. ${kop.kabupaten}, Kab. ${kop.kabupaten}, Prov. ${kop.provinsi}</div>
+            <div class="npsn-line">NPSN: ${kop.npsn} • Telp. (0281) 123456 • Email: ${kop.namaSekolah.toLowerCase().replace(/\s/g,'')}@sch.id</div>
+          </div>
+        </div>
+
+        <!-- JUDUL -->
+        <div class="judul-berkas">
+          <h3>DAFTAR HADIR${susulanTitle} PANITIA UJIAN</h3>
+          <div style="font-size: 11px; margin-top: 2px;">${isSusulan ? '<span style="color:#dc2626;font-weight:bold;">Ⓢ Daftar Hadir Susulan</span> • ' : ''}Teknisi, Proktor &amp; Pengawas • Mode: ${kop.mode} • Total: ${totalPanitia} orang</div>
+        </div>
+
+        <!-- INFO 2 KOLOM -->
+        <div class="info-grid">
+          <div class="info-col left">
+            <div class="info-row"><span class="label">Nama Sekolah</span><span class="sep">:</span><span class="value">${kop.namaSekolah}</span></div>
+            <div class="info-row"><span class="label">Kabupaten</span><span class="sep">:</span><span class="value">${kop.kabupaten}</span></div>
+            <div class="info-row"><span class="label">Provinsi</span><span class="sep">:</span><span class="value">${kop.provinsi}</span></div>
+            <div class="info-row"><span class="label">Sesi</span><span class="sep">:</span><span class="value">${sesiTampil}</span></div>
+            <div class="info-row"><span class="label">Mode Pelaksanaan</span><span class="sep">:</span><span class="value">${kop.mode}</span></div>
+            <div class="info-row"><span class="label">Total Panitia</span><span class="sep">:</span><span class="value">${totalPanitia} orang</span></div>
+          </div>
+          <div class="info-col">
+            <div class="info-row"><span class="label">NPSN</span><span class="sep">:</span><span class="value">${kop.npsn}</span></div>
+            <div class="info-row"><span class="label">Ruang</span><span class="sep">:</span><span class="value">${ruangTampil}</span></div>
+            <div class="info-row"><span class="label">Alokasi Waktu</span><span class="sep">:</span><span class="value">${kop.alokasi}</span></div>
+            <div class="info-row"><span class="label">Pukul</span><span class="sep">:</span><span class="value">${kop.pukul}</span></div>
+            <div class="info-row"><span class="label">Hari</span><span class="sep">:</span><span class="value">${kop.hari}</span></div>
+            <div class="info-row"><span class="label">Tanggal</span><span class="sep">:</span><span class="value">${kop.tanggalUjian}</span></div>
+          </div>
+        </div>
+
+        <!-- TABEL DAFTAR HADIR PANITIA -->
+        <table>
+          <thead>
+            <tr>
+              <th style="width:35px">No</th>
+              <th>Nama Lengkap</th>
+              <th style="width:90px">Jabatan</th>
+              <th style="width:200px">Tanda Tangan</th>
+              <th style="width:70px">Status</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+
+        <!-- TANDA TANGAN (hanya Kepala Sekolah di tengah bawah) -->
+        <div class="ttd-section">
+          <div class="ttd-kepsek-center">
+            <div class="jabatan">Mengetahui,<br />Kepala Sekolah</div>
+            <div class="nama">${kop.namaKepsek || '(...........................)'}</div>
+            <div class="nip">NIP. ${kop.nipKepsek || '...........................'}</div>
+          </div>
+        </div>
+
+        <div class="footer-cbt">SCBT Integrated System • v1.1 | Developed by MB • yanuar.b@gmail.com</div>
+      </body></html>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
+    }
+
+    /* ============================================================
+       INIT
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = loadSession();
+      if (saved && saved.user) {
+        state.user = saved.user;
+        document.getElementById('user-nama').textContent = saved.user.nama;
+        document.getElementById('screen-login').classList.add('hidden');
+        document.getElementById('screen-dashboard').classList.remove('hidden');
+        loadDashboard();
+      }
+    });
+  
+    /* ============================================================
+       ENTER KEY TRIGGER — Submit form dengan tekan Enter
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+        var form = e.target.closest('form');
+        if (form) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  </script>
+</body>
+</html>
