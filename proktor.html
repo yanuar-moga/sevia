@@ -535,13 +535,17 @@
               <div><label class="block text-xs font-semibold text-slate-700 mb-1">Waktu</label><input id="ba-waktu" type="text" placeholder="08:00 - 09:30 WIB" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
               <div><label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label><input id="ba-mapel" type="text" placeholder="Matematika" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
               <div><label class="block text-xs font-semibold text-slate-700 mb-1">Kelas</label><input id="ba-kelas" type="text" placeholder="XII-IPA-1" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Sesi</label><input id="ba-sesi" type="text" placeholder="Sesi 1" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Mode Pelaksanaan</label><input id="ba-mode" type="text" placeholder="Online / Offline" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-3 mb-4">
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Peserta Seharusnya</label><input id="ba-total" type="number" placeholder="40" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Hadir</label><input id="ba-hadir" type="number" placeholder="40" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Tidak Hadir</label><input id="ba-tidakhadir" type="number" placeholder="0" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
             </div>
             <div class="mb-4">
-              <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Peserta Hadir / Tidak Hadir</label>
-              <div class="grid grid-cols-2 gap-3">
-                <input id="ba-hadir" type="number" placeholder="Hadir: 40" class="input-field px-3 py-2 rounded-lg text-sm" />
-                <input id="ba-tidakhadir" type="number" placeholder="Tidak Hadir: 0" class="input-field px-3 py-2 rounded-lg text-sm" />
-              </div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Username Tidak Hadir</label>
+              <input id="ba-tidakhadir-usernames" type="text" placeholder="siswa01, siswa02 (kosongkan jika semua hadir)" class="input-field w-full px-3 py-2 rounded-lg text-sm" />
             </div>
             <div class="mb-4">
               <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Pengawas</label>
@@ -1277,8 +1281,12 @@
       const waktu = document.getElementById('ba-waktu').value;
       const mapel = document.getElementById('ba-mapel').value;
       const kelas = document.getElementById('ba-kelas').value;
+      const sesi = document.getElementById('ba-sesi').value;
+      const modePelaksanaan = document.getElementById('ba-mode').value;
+      const total = document.getElementById('ba-total').value;
       const hadir = document.getElementById('ba-hadir').value;
       const tidakhadir = document.getElementById('ba-tidakhadir').value;
+      const tidakhadirUsernames = document.getElementById('ba-tidakhadir-usernames').value;
       const catatan = document.getElementById('ba-catatan').value;
       const kop = getKopConfig();
 
@@ -1298,11 +1306,31 @@
           .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; letter-spacing: 0.5px; }
           .meta { margin: 15px 0; text-align: justify; }
           .meta p { margin: 4px 0; }
-          table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-          th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
-          th { background: #e2e8f0; font-weight: bold; text-align: center; }
+          /* Rincian sebagai daftar label:value dengan titik dua lurus */
+          .rincian {
+            margin: 12px 0 18px 24px;
+            font-size: 12px;
+            line-height: 1.7;
+          }
+          .rincian .baris {
+            display: grid;
+            grid-template-columns: 200px 8px 1fr;
+            margin: 2px 0;
+          }
+          .rincian .lbl { font-weight: normal; }
+          .rincian .sep { width: 8px; text-align: center; }
+          .rincian .val { font-weight: bold; }
+          /* Catatan pengawas tetap dalam kotak tabel */
           .catatan { margin-top: 20px; }
-          .catatan-box { border: 1px solid #000; padding: 10px; min-height: 60px; font-size: 12px; line-height: 1.6; }
+          .catatan-label { font-size: 12px; font-weight: bold; margin-bottom: 6px; }
+          .catatan-box {
+            border: 1px solid #000;
+            padding: 10px 12px;
+            min-height: 80px;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+          }
           .ttd-section { margin-top: 50px; }
           .ttd-row { display: flex; justify-content: space-between; }
           .ttd-box { width: 32%; text-align: center; font-size: 12px; }
@@ -1331,40 +1359,31 @@
           <!-- JUDUL -->
           <div class="judul-berkas">
             <h3>BERITA ACARA PELAKSANAAN UJIAN</h3>
-            <div style="font-size: 11px; margin-top: 2px;">Mode Pelaksanaan: ${kop.mode}</div>
           </div>
 
           <!-- ISI BERITA ACARA -->
           <div class="meta">
             <p>Pada hari ini <strong>${tanggal || kop.hari + ', ' + kop.tanggalUjian}</strong>, pukul <strong>${waktu || kop.pukul}</strong> WIB, telah dilaksanakan ujian dengan rincian sebagai berikut:</p>
-            <p>&nbsp;&nbsp;&nbsp;Nama Sekolah : <strong>${kop.namaSekolah}</strong></p>
-            <p>&nbsp;&nbsp;&nbsp;NPSN : <strong>${kop.npsn}</strong></p>
-            <p>&nbsp;&nbsp;&nbsp;Mata Pelajaran : <strong>${mapel || '-'}</strong></p>
-            <p>&nbsp;&nbsp;&nbsp;Kelas : <strong>${kelas || '-'}</strong></p>
-            <p>&nbsp;&nbsp;&nbsp;Ruangan : <strong>${ruangan || '-'}</strong></p>
-            <p>&nbsp;&nbsp;&nbsp;Mode Pelaksanaan : <strong>${kop.mode}</strong></p>
-            <p>&nbsp;&nbsp;&nbsp;Pengawas : <strong>${nama || kop.namaProktor}</strong></p>
           </div>
 
-          <!-- TABEL HADIR -->
-          <table>
-            <thead>
-              <tr>
-                <th>Jumlah Peserta Hadir</th>
-                <th>Jumlah Tidak Hadir</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="text-align:center; font-size: 14px; font-weight: bold;">${hadir || '-'}</td>
-                <td style="text-align:center; font-size: 14px; font-weight: bold;">${tidakhadir || '-'}</td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- RINCIAN — text biasa rata kiri, titik dua lurus (tanpa border tabel) -->
+          <div class="rincian">
+            <div class="baris"><span class="lbl">Nama Sekolah</span><span class="sep">:</span><span class="val">${kop.namaSekolah || '-'}</span></div>
+            <div class="baris"><span class="lbl">NPSN</span><span class="sep">:</span><span class="val">${kop.npsn || '-'}</span></div>
+            <div class="baris"><span class="lbl">Mata Pelajaran</span><span class="sep">:</span><span class="val">${mapel || '-'}</span></div>
+            <div class="baris"><span class="lbl">Kelas</span><span class="sep">:</span><span class="val">${kelas || '-'}</span></div>
+            <div class="baris"><span class="lbl">Ruangan</span><span class="sep">:</span><span class="val">${ruangan || '-'}</span></div>
+            <div class="baris"><span class="lbl">Sesi</span><span class="sep">:</span><span class="val">${sesi || '-'}</span></div>
+            <div class="baris"><span class="lbl">Mode Pelaksanaan</span><span class="sep">:</span><span class="val">${modePelaksanaan || kop.mode || '-'}</span></div>
+            <div class="baris"><span class="lbl">Jumlah Peserta Seharusnya</span><span class="sep">:</span><span class="val">${total || '-'}</span></div>
+            <div class="baris"><span class="lbl">Jumlah Hadir</span><span class="sep">:</span><span class="val">${hadir || '-'}</span></div>
+            <div class="baris"><span class="lbl">Jumlah Tidak Hadir</span><span class="sep">:</span><span class="val">${tidakhadir || '-'}</span></div>
+            <div class="baris"><span class="lbl">Username Tidak Hadir</span><span class="sep">:</span><span class="val">${tidakhadirUsernames || '-'}</span></div>
+          </div>
 
-          <!-- CATATAN PENGAWAS -->
+          <!-- CATATAN PENGAWAS — tetap dalam kotak tabel -->
           <div class="catatan">
-            <strong>Catatan Pengawas:</strong>
+            <div class="catatan-label">2. Catatan Pengawas</div>
             <div class="catatan-box">${catatan || '-'}</div>
           </div>
 
