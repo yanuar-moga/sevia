@@ -1005,7 +1005,7 @@
        SOAL_URL: URL Google Form / external soal (opsional)
        ============================================================ */
     const CONFIG = {
-      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzvTsgX8Gl8xcVjhP8NjYzLONMSZqj__WJ2On0R-rtyZ-EgefcV5zvRbXG7B1VJ6Di6/exec',  // kosong = mode demo (data lokal)
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwXe2QDk-rxfoPGVa4S9F55UlN_8gd6iOCqg0TtC-ZYP2nrA-hxNDbug9JBOfPHPt0/exec',  // kosong = mode demo (data lokal)
       SOAL_URL: '',     // Isi dengan URL Google Form jika soal external (cth: 'https://docs.google.com/forms/...')
       LOGO: 'https://yanuar-moga.github.io/cbt/assets/logo.png',
       APP_NAME: 'SCBT',
@@ -1075,7 +1075,9 @@
       try {
         const res = await fetch(CONFIG.WEB_APP_URL, {
           method: 'POST',
-          body: JSON.stringify(Object.assign({ action }, payload))
+          body: JSON.stringify(Object.assign({ action }, payload)),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow'
         });
         return await res.json();
       } catch (e) {
