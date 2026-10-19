@@ -744,7 +744,12 @@
     async function apiCall(action, payload) {
       if (!CONFIG.WEB_APP_URL) return mockApi(action, payload);
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action }, payload)) });
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify(Object.assign({ action }, payload)),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow'
+        });
         return await res.json();
       } catch (e) { return { success: false, error: e.message }; }
     }
