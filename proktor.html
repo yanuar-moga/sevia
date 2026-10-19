@@ -592,10 +592,14 @@
               
               <!-- Pilihan soal CBT -->
               <div id="proktor-cbt-section" class="hidden">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Paket Soal:</label>
+                <div class="flex items-center justify-between mb-2">
+                  <label class="block text-sm font-semibold text-slate-700">Pilih Paket Soal:</label>
+                  <button onclick="loadProktorSoalOptions()" class="text-xs text-royal-blue hover:underline">⟳ Refresh</button>
+                </div>
                 <select id="proktor-soal-id-select" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
                   <option value="">— Pilih Paket Soal —</option>
                 </select>
+                <p class="text-xs text-slate-400 mt-1">Paket soal dibuat oleh guru via halaman Editor Soal (soal.html). Klik Refresh jika baru saja membuat paket soal.</p>
               </div>
               
               <!-- URL Google Form -->
@@ -695,7 +699,7 @@
        CONFIG
        ============================================================ */
     const CONFIG = {
-      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzvTsgX8Gl8xcVjhP8NjYzLONMSZqj__WJ2On0R-rtyZ-EgefcV5zvRbXG7B1VJ6Di6/exec',
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwXe2QDk-rxfoPGVa4S9F55UlN_8gd6iOCqg0TtC-ZYP2nrA-hxNDbug9JBOfPHPt0/exec',
       LOGO: 'https://yanuar-moga.github.io/cbt/assets/logo.png',
       APP_NAME: 'SCBT',
       FULL_NAME: 'SCBT Integrated System (SEVIA)',
@@ -1402,6 +1406,9 @@
 
     async function loadProctorSoalMode() {
       try {
+        // SELALU load opsi paket soal terlebih dahulu (untuk populate dropdown)
+        await loadProktorSoalOptions();
+        
         // Load default admin
         const defaultRes = await apiCall('getSoalMode', {});
         if (defaultRes.success) {
@@ -1425,7 +1432,11 @@
             showProktorGform();
           } else {
             document.getElementById('proktor-mode-cbt').checked = true;
-            if (res.soal_id) await loadProktorSoalOptions(res.soal_id);
+            // Jika ada soal_id tersimpan, pilih di dropdown
+            if (res.soal_id) {
+              const sel = document.getElementById('proktor-soal-id-select');
+              if (sel) sel.value = res.soal_id;
+            }
             showProktorCbt();
           }
         }
@@ -1436,19 +1447,31 @@
 
     async function loadProktorSoalOptions(selectedId) {
       try {
-        const res = await apiCall('getAllSoal', {});
-        if (res.success && res.soal) {
-          const sel = document.getElementById('proktor-soal-id-select');
-          sel.innerHTML = '<option value="">— Pilih Paket Soal —</option>';
-          res.soal.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            var label = s.nama_paket || (s.mata_pelajaran + ' • ' + (s.tipe || 'pg'));
-            opt.textContent = label + ' (' + (s.jumlah_soal || '?') + ' soal)';
-            if (s.id === selectedId) opt.selected = true;
-            sel.appendChild(opt);
-          });
+        const res = await apiCall('getPaketSoalList', {});
+        const sel = document.getElementById('proktor-soal-id-select');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">— Pilih Paket Soal —</option>';
+        
+        if (!res.success) {
+          console.warn('getPaketSoalList gagal:', res.error);
+          sel.innerHTML += '<option value="" disabled>(Gagal load paket soal)</option>';
+          return;
         }
+        
+        if (!res.paket || res.paket.length === 0) {
+          sel.innerHTML += '<option value="" disabled>(Belum ada paket soal — buat via soal.html)</option>';
+          return;
+        }
+        
+        console.log('[DEBUG] Paket soal ditemukan:', res.paket.length, 'paket');
+        res.paket.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          var label = s.nama_paket || (s.mata_pelajaran + ' • ' + (s.tipe || 'pg'));
+          opt.textContent = label + ' (' + (s.jumlah_items || '?') + ' soal)';
+          if (s.id === selectedId || s.nama_paket === selectedId) opt.selected = true;
+          sel.appendChild(opt);
+        });
       } catch (e) { console.warn('Gagal load soal options:', e); }
     }
 
