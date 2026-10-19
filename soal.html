@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SCBT Integrated System - Editor Soal Guru" />
+  <title>SCBT - Editor Soal</title>
+  <script src="https://cdn.tailwindcss.com">
+    /* ============================================================
+       ENTER KEY TRIGGER — Submit form dengan tekan Enter
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+        // JANGAN trigger form submit jika sedang di input nama paket soal
+        if (e.target.id === 'nama-paket-soal') {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        var form = e.target.closest('form');
+        if (form) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  </script>
+  <link rel="icon" href="https://yanuar-moga.github.io/cbt/assets/logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --royal: #1e3a8a;
+      --royal-dark: #172554;
+      --royal-light: #2563eb;
+      --neon: #a3e635;
+      --neon-dark: #84cc16;
+      --slate: #1e293b;
+      --gray-bg: #f8fafc;
+    }
+    html, body { font-family: 'Inter', sans-serif; background: var(--gray-bg); -webkit-font-smoothing: antialiased; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .hover\:text-royal-blue:hover { color: var(--royal-light); }
+    .text-royal-blue { color: var(--royal-light); }
+
+    .royal-gradient {
+      background: linear-gradient(135deg, #172554 0%, #1e3a8a 45%, #2563eb 100%);
+      position: relative; overflow: hidden;
+    }
+    .royal-gradient::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(163,230,53,0.18) 0, transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(37,99,235,0.35) 0, transparent 45%);
+      pointer-events: none;
+    }
+    .logo-3d {
+      filter: drop-shadow(0 20px 40px rgba(163,230,53,0.35)) drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+      animation: floatY 6s ease-in-out infinite;
+    }
+    @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    .btn-neon {
+      background: linear-gradient(135deg, #bef264 0%, #a3e635 50%, #84cc16 100%);
+      color: #1e293b; font-weight: 700;
+      box-shadow: 0 10px 30px -10px rgba(163,230,53,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -10px rgba(163,230,53,0.7); filter: brightness(1.08); }
+    .btn-royal { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; font-weight: 600; box-shadow: 0 10px 30px -10px rgba(37,99,235,0.6); transition: all 0.2s; }
+    .btn-royal:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .card { background: white; border-radius: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
+    .input-field { transition: all 0.2s ease; border: 2px solid #e2e8f0; background: white; }
+    .input-field:focus { border-color: var(--royal-light); box-shadow: 0 0 0 4px rgba(37,99,235,0.12); outline: none; }
+
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Toast — SweetAlert-style */
+    .toast {
+      animation: toastIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .toast::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: rgba(255,255,255,0.5);
+    }
+    .toast.toast-out { animation: toastOut 0.3s ease-in forwards; }
+    @keyframes toastIn {
+      0% { transform: translateX(120%) scale(0.8); opacity: 0; }
+      60% { transform: translateX(-8%) scale(1.02); opacity: 1; }
+      100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes toastOut {
+      0% { transform: translateX(0); opacity: 1; }
+      100% { transform: translateX(120%); opacity: 0; }
+    }
+    .toast-progress {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.7);
+      animation: progressShrink 4s linear forwards;
+    }
+    @keyframes progressShrink { from { width: 100%; } to { width: 0%; } }
+
+    /* Custom Popup Modal — SweetAlert-style */
+    .popup-overlay {
+      position: fixed; inset: 0; z-index: 10002;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      animation: overlayIn 0.2s ease-out;
+    }
+    .popup-overlay.popup-out { animation: overlayOut 0.2s ease-in forwards; }
+    @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
+
+    .popup-card {
+      background: white;
+      border-radius: 1.25rem;
+      max-width: 28rem;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.05);
+      animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .popup-card.popup-out { animation: cardOut 0.25s ease-in forwards; }
+    @keyframes cardIn {
+      0% { transform: scale(0.7) translateY(20px); opacity: 0; }
+      60% { transform: scale(1.03) translateY(-4px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes cardOut {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.85) translateY(20px); opacity: 0; }
+    }
+
+    .popup-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 1.5rem auto 0;
+      animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+    @keyframes iconPop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .popup-icon-success { background: linear-gradient(135deg, #bef264, #84cc16); }
+    .popup-icon-error   { background: linear-gradient(135deg, #fca5a5, #dc2626); }
+    .popup-icon-warning { background: linear-gradient(135deg, #fcd34d, #d97706); }
+    .popup-icon-info    { background: linear-gradient(135deg, #93c5fd, #1e3a8a); }
+    .popup-icon-question{ background: linear-gradient(135deg, #c4b5fd, #6d28d9); }
+    .popup-icon svg { width: 44px; height: 44px; color: white; stroke-width: 2.5; }
+
+    .popup-icon-success svg { animation: checkDraw 0.5s ease-out 0.4s both; }
+    @keyframes checkDraw {
+      0% { stroke-dashoffset: 30; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .popup-icon-error svg { animation: shake 0.5s ease-out 0.4s; }
+    @keyframes shake {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-8deg); }
+      75% { transform: rotate(8deg); }
+    }
+
+    .popup-body { padding: 1.25rem 1.5rem 1.5rem; text-align: center; }
+    .popup-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+    .popup-message { font-size: 0.95rem; color: #64748b; line-height: 1.5; }
+    .popup-actions { display: flex; gap: 0.75rem; padding: 0 1.5rem 1.5rem; }
+    .popup-actions button { flex: 1; padding: 0.75rem 1rem; border-radius: 0.75rem; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .popup-btn-cancel { background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; }
+    .popup-btn-cancel:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .popup-btn-confirm {
+      background: linear-gradient(135deg, #bef264, #a3e635 50%, #84cc16);
+      color: #1e293b;
+      box-shadow: 0 8px 20px -8px rgba(163, 230, 53, 0.6);
+    }
+    .popup-btn-confirm:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 12px 28px -8px rgba(163, 230, 53, 0.8); }
+    .popup-btn-danger {
+      background: linear-gradient(135deg, #f87171, #dc2626);
+      color: white;
+      box-shadow: 0 8px 20px -8px rgba(220, 38, 38, 0.6);
+    }
+    .popup-btn-danger:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .popup-btn-ok {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+      box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.6);
+    }
+    .popup-btn-ok:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .nav-item { transition: all 0.15s ease; }
+    .nav-item.active { background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1e293b; font-weight: 600; }
+    .nav-item:not(.active):hover { background: #f1f5f9; color: #1e3a8a; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.4); } }
+
+    .progress-bar {
+      background: linear-gradient(90deg, #84cc16, #a3e635);
+      height: 6px;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    /* Editor-specific */
+    .soal-card { border-left: 4px solid var(--royal-light); }
+    .soal-card.is-active-tipe-pg            { border-left-color: #2563eb; }
+    .soal-card.is-active-tipe-sebab-akibat  { border-left-color: #a3e635; }
+    .soal-card.is-active-tipe-mencocokkan   { border-left-color: #f59e0b; }
+    .soal-card.is-active-tipe-dragdrop       { border-left-color: #8b5cf6; }
+    .soal-card.is-active-tipe-uraian        { border-left-color: #ef4444; }
+
+    .opsi-row { transition: background 0.15s; }
+    .opsi-row:hover { background: #f8fafc; }
+    .opsi-row.is-kunci { background: linear-gradient(90deg, rgba(163,230,53,0.15), transparent); }
+
+    .img-preview {
+      width: 100%; max-height: 140px; object-fit: contain;
+      background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 0.5rem;
+    }
+    .img-preview.has-img { border-style: solid; border-color: #a3e635; }
+
+    .badge-tipe-pg            { background: #dbeafe; color: #1e3a8a; }
+    .badge-tipe-sebab-akibat  { background: #ecfccb; color: #4d7c0f; }
+    .badge-tipe-mencocokkan   { background: #fef3c7; color: #b45309; }
+    .badge-tipe-dragdrop       { background: #ede9fe; color: #6d28d9; }
+    .badge-tipe-uraian        { background: #fee2e2; color: #b91c1c; }
+
+    @media print {
+      body * { visibility: hidden; }
+      .print-area, .print-area * { visibility: visible; }
+      .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ============================================================
+       SCREEN 1: LOGIN GURU
+       ============================================================ -->
+  <div id="screen-login" class="min-h-screen grid lg:grid-cols-2">
+    <div class="royal-gradient text-white p-8 lg:p-12 flex flex-col justify-between relative hidden lg:flex">
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-12">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-14 h-14 logo-3d rounded-2xl bg-white/10 p-1.5" />
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">SCBT Integrated System</h1>
+            <p class="text-blue-200 text-sm">SEVIA • Smart Examination &amp; Virtual Assessment</p>
+          </div>
+        </div>
+        <div class="space-y-6 max-w-md">
+          <h2 class="text-4xl font-extrabold leading-tight">Editor <span class="text-lime-300">Soal</span> Guru</h2>
+          <p class="text-blue-100 text-lg leading-relaxed">
+            Susun bank soal multi-tipe (Pilihan Ganda, Sebab-Akibat, Mencocokkan,
+            Drag &amp; Drop, Uraian), lengkap dengan gambar, kunci jawaban, bobot,
+            preview, export JSON, dan sinkronisasi ke spreadsheet via Google Apps Script.
+          </p>
+          <div class="grid grid-cols-2 gap-3 pt-4">
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">5</div><div class="text-xs text-blue-200">Tipe Soal</div></div>
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">A-E</div><div class="text-xs text-blue-200">Opsi + Gambar</div></div>
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">JSON</div><div class="text-xs text-blue-200">Export Backup</div></div>
+            <div class="bg-white/10 rounded-2xl p-4"><div class="text-2xl font-bold text-lime-300">GAS</div><div class="text-xs text-blue-200">Sync Spreadsheet</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="relative z-10 pt-12 border-t border-white/10">
+        <div class="text-blue-300 text-xs">Developed by MB • v1.1 • Build 2025.11.01</div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center p-6 sm:p-10 bg-white">
+      <div class="w-full max-w-md fade-in">
+        <div class="lg:hidden flex items-center gap-3 mb-8 justify-center">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-12 h-12 logo-3d" />
+          <div><h1 class="text-xl font-extrabold text-slate-900">SCBT System</h1><p class="text-slate-500 text-xs">Editor Soal</p></div>
+        </div>
+        <div class="mb-8">
+          <div class="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold mb-3">GURU / TEACHER</div>
+          <h2 class="text-3xl font-extrabold text-slate-900">Login Guru</h2>
+          <p class="text-slate-500 mt-2">Akses editor bank soal CBT.</p>
+        </div>
+        <form id="login-form" class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+            <input id="login-username" type="text" required placeholder="guru01" autocomplete="username" class="input-field w-full px-4 py-3 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+            <div class="relative">
+              <input id="login-password" type="password" required placeholder="••••••••" autocomplete="current-password" class="input-field w-full px-4 py-3 pr-12 rounded-xl" />
+              <button type="button" onclick="togglePwd('login-password')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn-neon w-full py-3.5 rounded-xl">Masuk Editor Soal</button>
+        </form>
+        <div class="mt-6 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-500">
+          <span class="font-semibold text-slate-700">Demo:</span> guru01 / guru123
+        </div>
+        <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+          <button onclick="showAppInfo()" class="text-xs text-slate-400 hover:text-royal-blue transition">
+            About SCBT Version 1.1
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 2: DASHBOARD EDITOR SOAL
+       ============================================================ -->
+  <div id="screen-dashboard" class="hidden min-h-screen">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-10 h-10 rounded-lg" />
+          <div>
+            <div class="text-sm font-bold text-slate-900">SCBT Integrated System</div>
+            <div class="text-xs text-slate-500">Editor Soal • Guru</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+            <span id="mode-indicator">MODE DEMO</span>
+          </div>
+          <div class="text-right hidden sm:block">
+            <div id="user-nama" class="text-sm font-semibold text-slate-900"></div>
+            <div class="text-xs text-slate-500">Guru / Teacher</div>
+          </div>
+          <button onclick="logout()" class="px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 font-semibold">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid lg:grid-cols-[240px_1fr] gap-6">
+      <!-- Sidebar -->
+      <aside class="lg:sticky lg:top-20 h-fit">
+        <nav class="card p-3 space-y-1">
+          <button onclick="navTo('editor')" data-nav="editor" class="nav-item active w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Editor Soal
+          </button>
+          <button onclick="navTo('daftar')" data-nav="daftar" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Daftar Soal
+          </button>
+          <button onclick="navTo('preview')" data-nav="preview" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Preview Soal
+          </button>
+        </nav>
+
+        <div class="card p-4 mt-3 space-y-2">
+          <div class="text-xs font-bold text-slate-700 uppercase">Ringkasan</div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Mapel</span><span id="side-mapel" class="font-semibold text-slate-900 text-right">—</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Tipe</span><span id="side-tipe" class="font-semibold text-slate-900">—</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Jumlah</span><span id="side-jumlah" class="font-semibold text-slate-900">0</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Waktu</span><span id="side-waktu" class="font-semibold text-slate-900">—</span></div>
+          <div class="pt-2">
+            <div class="text-xs text-slate-500 mb-1">Progress input</div>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div id="side-progress" class="progress-bar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <!-- TAB: EDITOR (config + soal list) -->
+        <div id="tab-editor" class="space-y-5">
+          <!-- Exam Config -->
+          <div class="card p-5 sm:p-6">
+            <div class="flex items-start justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h2 class="text-xl font-extrabold text-slate-900">Konfigurasi Ujian</h2>
+                <p class="text-slate-500 text-sm">Pengaturan dasar bank soal yang dibuat.</p>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">DEFAULT TIPE UNTUK SOAL BARU</span>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Mata Pelajaran</label>
+                <select id="cfg-mapel" class="input-field w-full px-3 py-2.5 rounded-lg text-sm">
+                  <option>Matematika</option>
+                  <option>Bahasa Indonesia</option>
+                  <option>Bahasa Inggris</option>
+                  <option>BIPA</option>
+                  <option>Fisika</option>
+                  <option>Kimia</option>
+                  <option>Biologi</option>
+                  <option>Sejarah</option>
+                  <option>Geografi</option>
+                  <option>Ekonomi</option>
+                  <option>Sosiologi</option>
+                  <option>Lainnya</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Waktu Ujian (menit)</label>
+                <input id="cfg-waktu" type="number" min="1" value="90" class="input-field w-full px-3 py-2.5 rounded-lg text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal Ujian</label>
+                <input id="cfg-tanggal" type="date" class="input-field w-full px-3 py-2.5 rounded-lg text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Jumlah Soal (target)</label>
+                <input id="cfg-jumlah" type="number" min="1" value="10" class="input-field w-full px-3 py-2.5 rounded-lg text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tipe Soal (default baru)</label>
+                <select id="cfg-tipe" class="input-field w-full px-3 py-2.5 rounded-lg text-sm">
+                  <option value="pg">Pilihan Ganda</option>
+                  <option value="sebab-akibat">Sebab-Akibat</option>
+                  <option value="mencocokkan">Mencocokkan Jawaban</option>
+                  <option value="dragdrop">Drag and Drop</option>
+                  <option value="uraian">Jawaban Uraian</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <div class="w-full p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-500">
+                  Mode sinkronisasi: <span id="cfg-mode-sync" class="font-bold text-slate-700">DEMO (localStorage)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="card p-4 flex flex-wrap items-center gap-2">
+            <button onclick="addSoal()" class="btn-neon px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+              Tambah Soal
+            </button>
+            <!-- Input Nama Paket Soal (di luar tombol) -->
+            <div class="mb-3">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Paket Soal <span class="text-red-500">*</span></label>
+              <input id="nama-paket-soal" type="text" placeholder="cth: Soal UTS Matematika 2025" 
+                class="input-field w-full px-3 py-2 rounded-lg text-sm font-medium"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();simpanSemua();}" />
+              <p class="text-xs text-slate-400 mt-1">Nama ini akan muncul di Proctor saat memilih soal. Tekan Enter atau klik "Simpan Semua" untuk menyimpan.</p>
+            </div>
+            <button onclick="simpanSemua()" class="btn-royal px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Simpan Semua
+            </button>
+            <button onclick="previewSoal()" class="px-4 py-2.5 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Preview
+            </button>
+            <button onclick="exportJson()" class="px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-100 text-violet-700 hover:bg-violet-200 transition flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Export JSON
+            </button>
+            <div class="ml-auto flex items-center gap-2">
+              <button onclick="resetAll()" class="px-3 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition">Reset Semua</button>
+            </div>
+          </div>
+
+          <!-- Soal List (rendered by JS) -->
+          <div id="soal-list" class="space-y-4"></div>
+
+          <!-- Empty state -->
+          <div id="soal-empty" class="card p-10 text-center text-slate-400">
+            <svg class="w-14 h-14 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="text-sm">Belum ada soal. Klik <strong class="text-slate-700">Tambah Soal</strong> untuk mulai.</div>
+          </div>
+        </div>
+
+        <!-- TAB: DAFTAR SOAL (compact list) -->
+        <div id="tab-daftar" class="hidden space-y-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900">Daftar Soal</h2>
+            <p class="text-slate-500 text-sm">Ringkasan semua soal yang sudah dibuat.</p>
+          </div>
+          <div id="daftar-list" class="space-y-3"></div>
+        </div>
+
+        <!-- TAB: PREVIEW -->
+        <div id="tab-preview" class="hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-extrabold text-slate-900">Preview Soal</h2>
+              <p class="text-slate-500 text-sm">Tampilan seperti yang akan dilihat siswa.</p>
+            </div>
+            <button onclick="window.print()" class="btn-royal px-4 py-2 rounded-lg text-sm">Print</button>
+          </div>
+          <div id="preview-area" class="card p-6 print-area space-y-5"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Footer dashboard -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center">
+      <button onclick="showAppInfo()" class="text-xs text-slate-400 hover:text-royal-blue transition">
+        About SCBT Version 1.1
+      </button>
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       MODAL: APP INFO (About popup)
+       ============================================================ -->
+  <div id="modal-info" class="hidden fixed inset-0 z-[10001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-8 fade-in">
+      <div class="text-center mb-6">
+        <img src="https://yanuar-moga.github.io/cbt/assets/sevia.png" class="max-h-28 w-auto mx-auto mb-3" alt="SEVIA Logo" style="object-fit: contain;" />
+        <h3 class="text-xl font-extrabold text-slate-900">SCBT Integrated System</h3>
+        <p class="text-slate-500 text-sm">Smart Examination &amp; Virtual Assessment (SEVIA)</p>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Pengembang</span><span class="font-semibold text-slate-900">MB</span></div>
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Build</span><span class="font-mono text-slate-900">2025.11.01</span></div>
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Versi</span><span class="font-mono text-slate-900">v1.1</span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-500">Kontak Email</span><a href="mailto:yanuar.b@gmail.com" class="font-semibold text-royal-blue hover:underline">yanuar.b@gmail.com</a></div>
+      </div>
+      <button onclick="closeAppInfo()" class="btn-royal w-full py-3 rounded-xl mt-6">Tutup</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TOAST CONTAINER
+       ============================================================ -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[10000] space-y-2"></div>
+
+  <script>
+    /* ============================================================
+       CONFIG
+       ============================================================ */
+    const CONFIG = {
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzvTsgX8Gl8xcVjhP8NjYzLONMSZqj__WJ2On0R-rtyZ-EgefcV5zvRbXG7B1VJ6Di6/exec',
+      LOGO: 'https://yanuar-moga.github.io/cbt/assets/logo.png',
+      APP_NAME: 'SCBT',
+      FULL_NAME: 'SCBT Integrated System (SEVIA)',
+      TAGLINE: 'Smart Examination & Virtual Assessment',
+      VERSION: 'v1.1',
+      DEVELOPER: 'MB',
+      EMAIL: 'yanuar.b@gmail.com'
+    };
+
+    const STORAGE_KEY = 'scbt_guru_session';
+    const DATA_KEY = 'scbt_soal_data';
+
+    const TIPE_LABEL = {
+      'pg': 'Pilihan Ganda',
+      'sebab-akibat': 'Sebab-Akibat',
+      'mencocokkan': 'Mencocokkan Jawaban',
+      'dragdrop': 'Drag and Drop',
+      'uraian': 'Jawaban Uraian'
+    };
+
+    const MAPEL_LIST = ['Matematika','Bahasa Indonesia','Bahasa Inggris','BIPA','Fisika','Kimia','Biologi','Sejarah','Geografi','Ekonomi','Sosiologi','Lainnya'];
+
+    /* ============================================================
+       SESSION & STATE
+       ============================================================ */
+    function loadSession() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) { return null; } }
+    function saveSession(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+    function clearSession() { localStorage.removeItem(STORAGE_KEY); }
+
+    let state = {
+      user: null,
+      config: {
+        mata_pelajaran: 'Matematika',
+        tanggal: new Date().toISOString().split('T')[0],
+        waktu: 90,
+        jumlah_soal: 10,
+        tipe: 'pg'
+      },
+      soal: []
+    };
+
+    function loadFromStorage() {
+      try {
+        const raw = localStorage.getItem(DATA_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data.config) Object.assign(state.config, data.config);
+        if (Array.isArray(data.soal)) state.soal = data.soal;
+      } catch (e) { console.warn('Load data gagal', e); }
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem(DATA_KEY, JSON.stringify({ config: state.config, soal: state.soal }));
+        return true;
+      } catch (e) {
+        console.error('Save gagal', e);
+        return false;
+      }
+    }
+
+    /* ============================================================
+       DEMO DATA
+       ============================================================ */
+    const DEMO_GURU = [
+      { username: 'guru01', password: 'guru123', nama_lengkap: 'Drs. Budi Santoso, M.Pd.', mapel: 'Matematika', role: 'guru' },
+      { username: 'guru02', password: 'guru123', nama_lengkap: 'Siti Aminah, S.Pd.', mapel: 'Bahasa Inggris', role: 'guru' },
+      { username: 'guru03', password: 'guru123', nama_lengkap: 'Ahmad Hidayat, S.Pd.', mapel: 'BIPA', role: 'guru' }
+    ];
+
+    /* ============================================================
+       API HELPER
+       ============================================================ */
+    async function apiCall(action, payload) {
+      if (!CONFIG.WEB_APP_URL) return mockApi(action, payload);
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action }, payload)) });
+        return await res.json();
+      } catch (e) { return { success: false, error: e.message }; }
+    }
+
+    function mockApi(action, p) {
+      if (action === 'loginGuru') {
+        const g = DEMO_GURU.find(x => x.username === p.username && x.password === p.password);
+        if (g) return { success: true, sessionToken: 'guru-' + Date.now(), user: { username: g.username, nama: g.nama_lengkap, mapel: g.mapel, role: 'guru' } };
+        return { success: false, error: 'Username/password salah (demo: guru01 / guru123)' };
+      }
+      if (action === 'simpanSoal') {
+        console.log('[DEMO] Soal disimpan:', p.nama_paket, p.soal_id, p.soal?.length, 'soal');
+        // Simpan ke localStorage dengan metadata nama_paket
+        try {
+          var existing = JSON.parse(localStorage.getItem('scbt_soal_data') || '[]');
+          // Buat entry ringkasan paket soal
+          var paketInfo = {
+            id: p.soal_id || ('SOAL_' + Date.now()),
+            nama_paket: p.nama_paket || 'Soal Tanpa Nama',
+            mata_pelajaran: p.soal && p.soal[0] ? p.soal[0].mata_pelajaran : '',
+            tipe: p.soal && p.soal[0] ? p.soal[0].tipe : 'pg',
+            jumlah_soal: p.soal ? p.soal.length : 0,
+            waktu: p.config ? p.config.waktu : 90,
+            tanggal: p.config ? p.config.tanggal : '',
+            soal: p.soal || []
+          };
+          existing.push(paketInfo);
+          localStorage.setItem('scbt_soal_data', JSON.stringify(existing));
+        } catch(e) { console.warn('Gagal simpan ke localStorage:', e); }
+        return { success: true, saved: p.soal?.length || 0, soal_id: p.soal_id, nama_paket: p.nama_paket };
+      }
+      if (action === 'getAllSoal') {
+        // Demo: return soal dari localStorage
+        try {
+          var saved = JSON.parse(localStorage.getItem('scbt_soal_data') || '[]');
+          // Format untuk match dengan yang proktor harapkan
+          var formatted = saved.map(function(s) {
+            return {
+              id: s.id || s.soal_id || 'SOAL_DEMO',
+              nama_paket: s.nama_paket || (s.mata_pelajaran || 'Soal Demo'),
+              mata_pelajaran: s.mata_pelajaran || '',
+              tipe: s.tipe || 'pg',
+              jumlah_soal: s.jumlah_soal || 1,
+              waktu: s.waktu || 90,
+              tanggal: s.tanggal || ''
+            };
+          });
+          return { success: true, soal: formatted };
+        } catch(e) {
+          return { success: true, soal: [] };
+        }
+      }
+      return { success: false, error: 'Unknown action' };
+    }
+
+    /* ============================================================
+       UI HELPERS — Popup System (SweetAlert-style)
+       ============================================================ */
+    const POPUP_ICONS = {
+      success: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>',
+      error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>',
+      warning: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+      info: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      question: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.5-1.5 2.5-3 3-.5.25-1 .75-1 1.5M12 18h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+    };
+    const POPUP_TITLES = {
+      success: 'Berhasil!', error: 'Terjadi Kesalahan',
+      warning: 'Peringatan', info: 'Informasi', question: 'Konfirmasi'
+    };
+
+    function showToast(msg, type = 'info', duration = 4000) {
+      const colors = { info: 'bg-blue-600', success: 'bg-emerald-500', error: 'bg-red-500', warning: 'bg-amber-500' };
+      const el = document.createElement('div');
+      el.className = `toast ${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg max-w-sm flex items-center gap-3`;
+      const iconSvg = POPUP_ICONS[type] || POPUP_ICONS.info;
+      el.innerHTML = `
+        <div class="w-5 h-5 flex-shrink-0">${iconSvg.replace('<svg', '<svg style="width:20px;height:20px;"')}</div>
+        <div class="flex-1 text-sm font-medium">${msg}</div>
+        <button onclick="this.parentElement.classList.add('toast-out'); setTimeout(()=>this.parentElement.remove(),300)" class="text-white/70 hover:text-white flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="toast-progress"></div>
+      `;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); }, duration);
+    }
+
+    function showPopup(opts) {
+      return new Promise((resolve) => {
+        const { type = 'info', title, message, confirmText = 'OK', cancelText = 'Batal', showCancel = false, danger = false } = opts;
+        const iconSvg = POPUP_ICONS[type] || POPUP_ICONS.info;
+        const finalTitle = title || POPUP_TITLES[type] || 'Informasi';
+        const overlay = document.createElement('div');
+        overlay.className = 'popup-overlay';
+        overlay.innerHTML = `
+          <div class="popup-card">
+            <div class="popup-icon popup-icon-${type}">${iconSvg}</div>
+            <div class="popup-body">
+              <div class="popup-title">${finalTitle}</div>
+              <div class="popup-message">${message}</div>
+            </div>
+            <div class="popup-actions">
+              ${showCancel ? `<button class="popup-btn-cancel" data-action="cancel">${cancelText}</button>` : ''}
+              <button class="${danger ? 'popup-btn-danger' : (type === 'success' ? 'popup-btn-confirm' : 'popup-btn-ok')}" data-action="ok">${confirmText}</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = (result) => {
+          overlay.classList.add('popup-out');
+          const card = overlay.querySelector('.popup-card');
+          if (card) card.classList.add('popup-out');
+          setTimeout(() => overlay.remove(), 250);
+          resolve(result);
+        };
+        overlay.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+        const cancelBtn = overlay.querySelector('[data-action="cancel"]');
+        if (cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+        overlay.addEventListener('click', (e) => { if (e.target === overlay && !showCancel) close(true); });
+      });
+    }
+
+    function showConfirm(message, opts = {}) {
+      return showPopup({
+        type: opts.type || 'question',
+        title: opts.title || 'Konfirmasi',
+        message: message, showCancel: true,
+        confirmText: opts.confirmText || 'Ya, Lanjutkan',
+        cancelText: opts.cancelText || 'Batal',
+        danger: opts.danger || false
+      });
+    }
+
+    function showAlert(message, type = 'info', title = null) {
+      return showPopup({ type: type, title: title, message: message, showCancel: false, confirmText: 'OK, Mengerti' });
+    }
+    const toast = showToast;
+    function togglePwd(id) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; }
+    function showAppInfo() { document.getElementById('modal-info').classList.remove('hidden'); }
+    function closeAppInfo() { document.getElementById('modal-info').classList.add('hidden'); }
+
+    function navTo(tab) {
+      ['editor', 'daftar', 'preview'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.classList.add('hidden');
+        const nav = document.querySelector(`[data-nav="${t}"]`);
+        if (nav) nav.classList.remove('active');
+      });
+      const tabEl = document.getElementById('tab-' + tab);
+      if (tabEl) tabEl.classList.remove('hidden');
+      const navEl = document.querySelector(`[data-nav="${tab}"]`);
+      if (navEl) navEl.classList.add('active');
+      if (tab === 'daftar') renderDaftarList();
+      if (tab === 'preview') renderPreview();
+    }
+
+    /* ============================================================
+       LOGIN
+       ============================================================ */
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      const res = await apiCall('loginGuru', { username, password });
+      if (!res.success) { showToast(res.error || 'Login gagal', 'error'); return; }
+      state.user = res.user;
+      saveSession({ user: res.user, loginAt: Date.now() });
+      document.getElementById('user-nama').textContent = res.user.nama;
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-dashboard').classList.remove('hidden');
+      // Pre-fill mapel dari profil guru jika tersedia
+      if (res.user.mapel && MAPEL_LIST.includes(res.user.mapel)) state.config.mata_pelajaran = res.user.mapel;
+      loadFromStorage();
+      syncConfigForm();
+      renderAll();
+      showToast('Selamat datang, ' + res.user.nama, 'success');
+    });
+
+    function logout() {
+      clearSession();
+      state.user = null;
+      document.getElementById('screen-dashboard').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+      document.getElementById('login-form').reset();
+    }
+
+    /* ============================================================
+       CONFIG FORM BINDING
+       ============================================================ */
+    function syncConfigForm() {
+      document.getElementById('cfg-mapel').value = state.config.mata_pelajaran;
+      document.getElementById('cfg-waktu').value = state.config.waktu;
+      document.getElementById('cfg-tanggal').value = state.config.tanggal;
+      document.getElementById('cfg-jumlah').value = state.config.jumlah_soal;
+      document.getElementById('cfg-tipe').value = state.config.tipe;
+      document.getElementById('cfg-mode-sync').textContent = CONFIG.WEB_APP_URL ? 'GAS (Spreadsheet)' : 'DEMO (localStorage)';
+      document.getElementById('mode-indicator').textContent = CONFIG.WEB_APP_URL ? 'MODE PRODUKSI' : 'MODE DEMO';
+      updateSidebar();
+    }
+
+    function bindConfigForm() {
+      const fields = [
+        ['cfg-mapel', 'mata_pelajaran', 'string'],
+        ['cfg-waktu', 'waktu', 'number'],
+        ['cfg-tanggal', 'tanggal', 'string'],
+        ['cfg-jumlah', 'jumlah_soal', 'number'],
+        ['cfg-tipe', 'tipe', 'string']
+      ];
+      fields.forEach(([id, key, type]) => {
+        const el = document.getElementById(id);
+        el.addEventListener('change', () => {
+          state.config[key] = type === 'number' ? (parseInt(el.value) || 0) : el.value;
+          saveToStorage();
+          updateSidebar();
+          if (key === 'mata_pelajaran' || key === 'tipe') {
+            // Auto update existing soal's mapel (config-level snapshot)
+            // (we don't overwrite individual soal.tipe, just config default)
+          }
+          showToast('Konfigurasi diperbarui', 'info', 1800);
+        });
+      });
+    }
+
+    function updateSidebar() {
+      document.getElementById('side-mapel').textContent = state.config.mata_pelajaran;
+      document.getElementById('side-tipe').textContent = TIPE_LABEL[state.config.tipe] || '—';
+      document.getElementById('side-jumlah').textContent = state.soal.length + ' / ' + state.config.jumlah_soal;
+      document.getElementById('side-waktu').textContent = state.config.waktu + ' mnt';
+      const pct = state.config.jumlah_soal > 0 ? Math.min(100, Math.round(state.soal.length / state.config.jumlah_soal * 100)) : 0;
+      document.getElementById('side-progress').style.width = pct + '%';
+    }
+
+    /* ============================================================
+       SOAL CRUD — create blank template by tipe
+       ============================================================ */
+    function createBlankSoal(tipe, no) {
+      const id = 'SOAL_' + String(no).padStart(3, '0');
+      const base = {
+        id: id,
+        mata_pelajaran: state.config.mata_pelajaran,
+        tanggal: state.config.tanggal,
+        waktu: state.config.waktu,
+        jumlah_soal: state.config.jumlah_soal,
+        tipe: tipe,
+        pertanyaan: '',
+        gambar_soal: '',
+        bobot: 1
+      };
+      if (tipe === 'pg') {
+        base.opsi = [
+          { huruf: 'A', teks: '', gambar: '' },
+          { huruf: 'B', teks: '', gambar: '' },
+          { huruf: 'C', teks: '', gambar: '' },
+          { huruf: 'D', teks: '', gambar: '' },
+          { huruf: 'E', teks: '', gambar: '' }
+        ];
+        base.kunci_jawaban = 'A';
+      } else if (tipe === 'sebab-akibat') {
+        base.sebab = '';
+        base.akibat = '';
+        base.opsi = [
+          { huruf: 'A', teks: 'Kedua pernyataan benar dan memiliki hubungan sebab-akibat' },
+          { huruf: 'B', teks: 'Kedua pernyataan benar tetapi tidak memiliki hubungan sebab-akibat' },
+          { huruf: 'C', teks: 'Pernyataan pertama benar, pernyataan kedua salah' },
+          { huruf: 'D', teks: 'Pernyataan pertama salah, pernyataan kedua benar' }
+        ];
+        base.kunci_jawaban = 'A';
+      } else if (tipe === 'mencocokkan') {
+        base.pasangan = [
+          { kiri: '', kanan: '' },
+          { kiri: '', kanan: '' },
+          { kiri: '', kanan: '' },
+          { kiri: '', kanan: '' }
+        ];
+        base.kunci_jawaban = '';
+      } else if (tipe === 'dragdrop') {
+        base.drag_items = ['', '', ''];
+        base.drop_targets = ['', '', ''];
+        base.kunci_jawaban = '0,1,2'; // urutan jawaban benar (index drag → target)
+        base.pertanyaan = 'Susun item berikut ke kolom target yang sesuai.';
+      } else if (tipe === 'uraian') {
+        base.rubrik = '';
+        base.kunci_jawaban = ''; // jawaban singkat / kunci
+      }
+      return base;
+    }
+
+    function addSoal() {
+      const soal = createBlankSoal(state.config.tipe, state.soal.length + 1);
+      state.soal.push(soal);
+      saveToStorage();
+      renderSoalList();
+      updateSidebar();
+      // scroll ke soal baru
+      setTimeout(() => {
+        const list = document.getElementById('soal-list');
+        const last = list.lastElementChild;
+        if (last) last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+      showToast('Soal #' + state.soal.length + ' ditambahkan (' + TIPE_LABEL[soal.tipe] + ')', 'success');
+    }
+
+    async function deleteSoal(idx) {
+      const ok = await showConfirm(`Hapus soal <strong>#${idx + 1}</strong>?<br><br>Tindakan ini tidak dapat dibatalkan.`, {
+        confirmText: 'Ya, Hapus', danger: true
+      });
+      if (!ok) return;
+      state.soal.splice(idx, 1);
+      // Re-number IDs
+      state.soal.forEach((s, i) => { s.id = 'SOAL_' + String(i + 1).padStart(3, '0'); });
+      saveToStorage();
+      renderSoalList();
+      updateSidebar();
+      showToast('Soal dihapus.', 'success');
+    }
+
+    async function resetAll() {
+      const ok = await showConfirm('Reset SEMUA soal dan konfigurasi?<br><br>Seluruh data editor akan dihapus permanen dari localStorage.', {
+        confirmText: 'Ya, Reset Semua', danger: true
+      });
+      if (!ok) return;
+      state.soal = [];
+      state.config = {
+        mata_pelajaran: 'Matematika',
+        tanggal: new Date().toISOString().split('T')[0],
+        waktu: 90,
+        jumlah_soal: 10,
+        tipe: 'pg'
+      };
+      localStorage.removeItem(DATA_KEY);
+      syncConfigForm();
+      renderAll();
+      showToast('Editor direset.', 'info');
+    }
+
+    /* ============================================================
+       RENDER: SOAL LIST (editor cards)
+       ============================================================ */
+    function renderSoalList() {
+      const list = document.getElementById('soal-list');
+      const empty = document.getElementById('soal-empty');
+      if (state.soal.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      list.innerHTML = state.soal.map((s, i) => renderSoalCard(s, i)).join('');
+    }
+
+    function renderSoalCard(s, idx) {
+      const tipeLabel = TIPE_LABEL[s.tipe] || s.tipe;
+      const badgeClass = 'badge-tipe-' + s.tipe;
+      const cardClass = 'soal-card is-active-tipe-' + s.tipe;
+      return `
+        <div class="card p-5 sm:p-6 ${cardClass}" data-soal-idx="${idx}">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm">${idx + 1}</div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-mono text-xs text-slate-400">${s.id}</span>
+                  <span class="px-2 py-0.5 rounded-full ${badgeClass} text-xs font-semibold">${tipeLabel}</span>
+                </div>
+                <div class="text-xs text-slate-500">${s.mata_pelajaran} • Bobot ${s.bobot} • ${s.tanggal}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <select onchange="changeTipe(${idx}, this.value)" class="input-field px-2 py-1.5 rounded-lg text-xs">
+                <option value="pg" ${s.tipe === 'pg' ? 'selected' : ''}>Pilihan Ganda</option>
+                <option value="sebab-akibat" ${s.tipe === 'sebab-akibat' ? 'selected' : ''}>Sebab-Akibat</option>
+                <option value="mencocokkan" ${s.tipe === 'mencocokkan' ? 'selected' : ''}>Mencocokkan</option>
+                <option value="dragdrop" ${s.tipe === 'dragdrop' ? 'selected' : ''}>Drag &amp; Drop</option>
+                <option value="uraian" ${s.tipe === 'uraian' ? 'selected' : ''}>Uraian</option>
+              </select>
+              <button onclick="deleteSoal(${idx})" class="p-2 rounded-lg text-red-600 hover:bg-red-50 transition" title="Hapus soal">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Pertanyaan -->
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pertanyaan / Pernyataan</label>
+            <textarea data-soal-field="pertanyaan" rows="3" placeholder="Tulis pertanyaan di sini..." class="input-field w-full px-3 py-2.5 rounded-lg text-sm">${escapeHtml(s.pertanyaan)}</textarea>
+          </div>
+
+          <!-- Gambar soal -->
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Gambar Soal (opsional)</label>
+            <div class="grid sm:grid-cols-[1fr_180px] gap-3">
+              <div class="space-y-2">
+                <input type="text" data-soal-field="gambar_soal" placeholder="URL gambar (https://drive.google.com/uc?id=XXX)" value="${escapeAttr(s.gambar_soal)}" class="input-field w-full px-3 py-2 rounded-lg text-xs" />
+                <input type="file" accept="image/*" onchange="handleImageUpload(${idx}, 'gambar_soal', this.files[0])" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-semibold hover:file:bg-blue-100" />
+              </div>
+              <div>${renderImagePreview(s.gambar_soal)}</div>
+            </div>
+          </div>
+
+          <!-- Tipe-specific editor -->
+          ${renderTipeEditor(s, idx)}
+
+          <!-- Bobot + Kunci (umum untuk sebagian tipe) -->
+          <div class="grid sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Bobot Nilai</label>
+              <input type="number" min="0" step="0.5" data-soal-field="bobot" value="${s.bobot}" class="input-field w-full px-3 py-2 rounded-lg text-sm" />
+            </div>
+            ${renderKunciJawaban(s, idx)}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderImagePreview(url) {
+      if (!url) {
+        return `<div class="img-preview flex items-center justify-center text-xs text-slate-400 h-full min-h-[100px]">No image</div>`;
+      }
+      return `<img src="${escapeAttr(url)}" class="img-preview has-img" onerror="this.classList.remove('has-img'); this.style.display='none'; this.nextElementSibling.style.display='flex';" /><div class="img-preview flex items-center justify-center text-xs text-red-400 h-full min-h-[100px]" style="display:none;">Gagal load</div>`;
+    }
+
+    function renderTipeEditor(s, idx) {
+      if (s.tipe === 'pg') return renderPgEditor(s, idx);
+      if (s.tipe === 'sebab-akibat') return renderSebabAkibatEditor(s, idx);
+      if (s.tipe === 'mencocokkan') return renderMencocokkanEditor(s, idx);
+      if (s.tipe === 'dragdrop') return renderDragDropEditor(s, idx);
+      if (s.tipe === 'uraian') return renderUraianEditor(s, idx);
+      return '';
+    }
+
+    function renderPgEditor(s, idx) {
+      const opsi = s.opsi || [];
+      const rows = opsi.map((o, i) => `
+        <div class="opsi-row ${s.kunci_jawaban === o.huruf ? 'is-kunci' : ''} grid grid-cols-[36px_1fr_180px] gap-2 items-start p-2 rounded-lg border border-slate-100">
+          <div class="w-9 h-9 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-sm">${o.huruf}</div>
+          <div class="space-y-2">
+            <textarea data-soal-field="opsi" data-sub-idx="${i}" data-sub-field="teks" rows="1" placeholder="Teks opsi ${o.huruf}" class="input-field w-full px-3 py-2 rounded-lg text-sm">${escapeHtml(o.teks)}</textarea>
+            <div class="flex gap-2">
+              <input type="text" data-soal-field="opsi" data-sub-idx="${i}" data-sub-field="gambar" placeholder="URL gambar opsi" value="${escapeAttr(o.gambar)}" class="input-field flex-1 px-3 py-1.5 rounded-lg text-xs" />
+              <input type="file" accept="image/*" onchange="handleOpsiImageUpload(${idx}, ${i}, this.files[0])" class="text-xs text-slate-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700" />
+            </div>
+          </div>
+          <div>${renderImagePreview(o.gambar)}</div>
+        </div>
+      `).join('');
+      return `
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-semibold text-slate-700">Pilihan Jawaban (A-E)</label>
+            <div class="flex gap-1">
+              ${opsi.length < 5 ? `<button onclick="addOpsi(${idx})" class="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold">+ Opsi</button>` : ''}
+              ${opsi.length > 2 ? `<button onclick="removeOpsi(${idx})" class="text-xs px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-600 font-semibold">− Opsi</button>` : ''}
+            </div>
+          </div>
+          <div class="space-y-2">${rows}</div>
+        </div>
+      `;
+    }
+
+    function renderSebabAkibatEditor(s, idx) {
+      const opsi = s.opsi || [];
+      const rows = opsi.map((o, i) => `
+        <div class="opsi-row ${s.kunci_jawaban === o.huruf ? 'is-kunci' : ''} p-2 rounded-lg border border-slate-100">
+          <div class="flex items-start gap-2">
+            <div class="w-8 h-8 rounded-lg bg-slate-900 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">${o.huruf}</div>
+            <div class="text-sm text-slate-700">${escapeHtml(o.teks)}</div>
+          </div>
+        </div>
+      `).join('');
+      return `
+        <div class="mb-4 space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pernyataan Sebab</label>
+            <textarea data-soal-field="sebab" rows="2" placeholder="Tulis pernyataan sebab..." class="input-field w-full px-3 py-2.5 rounded-lg text-sm">${escapeHtml(s.sebab || '')}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pernyataan Akibat</label>
+            <textarea data-soal-field="akibat" rows="2" placeholder="Tulis pernyataan akibat..." class="input-field w-full px-3 py-2.5 rounded-lg text-sm">${escapeHtml(s.akibat || '')}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pilihan Jawaban</label>
+            <div class="space-y-2">${rows}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMencocokkanEditor(s, idx) {
+      const pas = s.pasangan || [];
+      const rows = pas.map((p, i) => `
+        <div class="grid grid-cols-[1fr_24px_1fr_32px] gap-2 items-center p-2 rounded-lg border border-slate-100">
+          <input type="text" data-soal-field="pasangan" data-sub-idx="${i}" data-sub-field="kiri" placeholder="Kolom KIRI" value="${escapeAttr(p.kiri)}" class="input-field px-3 py-2 rounded-lg text-sm" />
+          <div class="text-center text-slate-400 font-bold">↔</div>
+          <input type="text" data-soal-field="pasangan" data-sub-idx="${i}" data-sub-field="kanan" placeholder="Kolom KANAN" value="${escapeAttr(p.kanan)}" class="input-field px-3 py-2 rounded-lg text-sm" />
+          <button onclick="removePasangan(${idx}, ${i})" class="p-1.5 rounded text-red-600 hover:bg-red-50" title="Hapus pasangan">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+      return `
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-semibold text-slate-700">Pasangan Mencocokkan (Kiri ↔ Kanan)</label>
+            <button onclick="addPasangan(${idx})" class="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold">+ Pasangan</button>
+          </div>
+          <div class="space-y-2">${rows}</div>
+        </div>
+      `;
+    }
+
+    function renderDragDropEditor(s, idx) {
+      const drag = s.drag_items || [];
+      const drop = s.drop_targets || [];
+      const dragRows = drag.map((d, i) => `
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded bg-violet-100 text-violet-700 font-bold flex items-center justify-center text-xs flex-shrink-0">${i + 1}</div>
+          <input type="text" data-soal-field="drag_items" data-sub-idx="${i}" placeholder="Item drag #${i + 1}" value="${escapeAttr(d)}" class="input-field flex-1 px-3 py-2 rounded-lg text-sm" />
+          <button onclick="removeDragItem(${idx}, ${i})" class="p-1.5 rounded text-red-600 hover:bg-red-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+      const dropRows = drop.map((d, i) => `
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs flex-shrink-0">T${i + 1}</div>
+          <input type="text" data-soal-field="drop_targets" data-sub-idx="${i}" placeholder="Target drop #${i + 1}" value="${escapeAttr(d)}" class="input-field flex-1 px-3 py-2 rounded-lg text-sm" />
+          <button onclick="removeDropTarget(${idx}, ${i})" class="p-1.5 rounded text-red-600 hover:bg-red-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      `).join('');
+      return `
+        <div class="mb-4 grid sm:grid-cols-2 gap-4">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-semibold text-slate-700">Drag Items</label>
+              <button onclick="addDragItem(${idx})" class="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold">+ Item</button>
+            </div>
+            <div class="space-y-2">${dragRows}</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-semibold text-slate-700">Drop Targets</label>
+              <button onclick="addDropTarget(${idx})" class="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold">+ Target</button>
+            </div>
+            <div class="space-y-2">${dropRows}</div>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Kunci Jawaban (urutan index drag → target, dipisah koma)</label>
+            <input type="text" data-soal-field="kunci_jawaban" placeholder="Contoh: 0,1,2 (artinya drag#1→target#1, drag#2→target#2, ...)" value="${escapeAttr(s.kunci_jawaban || '')}" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono" />
+          </div>
+        </div>
+      `;
+    }
+
+    function renderUraianEditor(s, idx) {
+      return `
+        <div class="mb-4">
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Rubrik / Kunci Jawaban (untuk guru)</label>
+          <textarea data-soal-field="rubrik" rows="4" placeholder="Tulis rubrik penilaian atau kunci jawaban acuan..." class="input-field w-full px-3 py-2.5 rounded-lg text-sm">${escapeHtml(s.rubrik || '')}</textarea>
+          <p class="text-xs text-slate-400 mt-1.5">Siswa akan menjawab melalui textarea (jawaban bebas). Rubrik di atas hanya untuk panduan guru saat koreksi.</p>
+        </div>
+      `;
+    }
+
+    function renderKunciJawaban(s, idx) {
+      if (s.tipe === 'pg' || s.tipe === 'sebab-akibat') {
+        const opsi = s.opsi || [];
+        const opts = opsi.map(o => `<option value="${o.huruf}" ${s.kunci_jawaban === o.huruf ? 'selected' : ''}>${o.huruf}</option>`).join('');
+        return `
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Kunci Jawaban</label>
+            <select data-soal-field="kunci_jawaban" class="input-field w-full px-3 py-2 rounded-lg text-sm">
+              ${opts}
+            </select>
+          </div>
+        `;
+      }
+      if (s.tipe === 'mencocokkan') {
+        return `<div class="text-xs text-slate-400 italic flex items-end">Kunci = pasangan kiri↔kanan (otomatis)</div>`;
+      }
+      if (s.tipe === 'dragdrop') {
+        return `<div class="text-xs text-slate-400 italic flex items-end">Kunci = urutan di atas</div>`;
+      }
+      if (s.tipe === 'uraian') {
+        return `<div class="text-xs text-slate-400 italic flex items-end">Dinilai manual via rubrik</div>`;
+      }
+      return '';
+    }
+
+    /* ============================================================
+       TIPE CHANGE
+       ============================================================ */
+    function changeTipe(idx, newTipe) {
+      const old = state.soal[idx];
+      if (!old) return;
+      const newSoal = createBlankSoal(newTipe, idx + 1);
+      // Preserve common fields
+      newSoal.id = old.id;
+      newSoal.mata_pelajaran = old.mata_pelajaran;
+      newSoal.tanggal = old.tanggal;
+      newSoal.waktu = old.waktu;
+      newSoal.jumlah_soal = old.jumlah_soal;
+      newSoal.pertanyaan = old.pertanyaan || '';
+      newSoal.gambar_soal = old.gambar_soal || '';
+      newSoal.bobot = old.bobot || 1;
+      state.soal[idx] = newSoal;
+      saveToStorage();
+      renderSoalList();
+      updateSidebar();
+      showToast('Tipe soal diubah ke ' + TIPE_LABEL[newTipe], 'info', 2000);
+    }
+
+    /* ============================================================
+       OPSI / PASANGAN / DRAG / DROP CRUD
+       ============================================================ */
+    function addOpsi(idx) {
+      const s = state.soal[idx];
+      if (!s || !s.opsi) return;
+      if (s.opsi.length >= 5) return;
+      const huruf = String.fromCharCode(65 + s.opsi.length);
+      s.opsi.push({ huruf: huruf, teks: '', gambar: '' });
+      saveToStorage();
+      renderSoalList();
+    }
+    function removeOpsi(idx) {
+      const s = state.soal[idx];
+      if (!s || !s.opsi || s.opsi.length <= 2) return;
+      s.opsi.pop();
+      // re-letter
+      s.opsi.forEach((o, i) => o.huruf = String.fromCharCode(65 + i));
+      if (!s.opsi.find(o => o.huruf === s.kunci_jawaban)) s.kunci_jawaban = s.opsi[0].huruf;
+      saveToStorage();
+      renderSoalList();
+    }
+    function addPasangan(idx) {
+      const s = state.soal[idx];
+      if (!s || !s.pasangan) return;
+      s.pasangan.push({ kiri: '', kanan: '' });
+      saveToStorage();
+      renderSoalList();
+    }
+    function removePasangan(idx, i) {
+      const s = state.soal[idx];
+      if (!s || !s.pasangan) return;
+      s.pasangan.splice(i, 1);
+      saveToStorage();
+      renderSoalList();
+    }
+    function addDragItem(idx) {
+      const s = state.soal[idx];
+      if (!s || !s.drag_items) return;
+      s.drag_items.push('');
+      saveToStorage();
+      renderSoalList();
+    }
+    function removeDragItem(idx, i) {
+      const s = state.soal[idx];
+      if (!s || !s.drag_items) return;
+      s.drag_items.splice(i, 1);
+      saveToStorage();
+      renderSoalList();
+    }
+    function addDropTarget(idx) {
+      const s = state.soal[idx];
+      if (!s || !s.drop_targets) return;
+      s.drop_targets.push('');
+      saveToStorage();
+      renderSoalList();
+    }
+    function removeDropTarget(idx, i) {
+      const s = state.soal[idx];
+      if (!s || !s.drop_targets) return;
+      s.drop_targets.splice(i, 1);
+      saveToStorage();
+      renderSoalList();
+    }
+
+    /* ============================================================
+       IMAGE UPLOAD (file → Data URL for preview/local; URL → URL)
+       ============================================================ */
+    function handleImageUpload(idx, field, file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        state.soal[idx][field] = e.target.result;
+        saveToStorage();
+        renderSoalList();
+        showToast('Gambar soal diunggah (mode preview lokal).', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+    function handleOpsiImageUpload(idx, opsiIdx, file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const s = state.soal[idx];
+        if (!s || !s.opsi || !s.opsi[opsiIdx]) return;
+        s.opsi[opsiIdx].gambar = e.target.result;
+        saveToStorage();
+        renderSoalList();
+        showToast('Gambar opsi diunggah.', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ============================================================
+       FORM CHANGE BINDING (delegated input listener)
+       ============================================================ */
+    function bindSoalListEvents() {
+      const list = document.getElementById('soal-list');
+      list.addEventListener('input', (e) => {
+        const t = e.target;
+        if (!t.dataset) return;
+        const card = t.closest('[data-soal-idx]');
+        if (!card) return;
+        const idx = parseInt(card.dataset.soalIdx);
+        const s = state.soal[idx];
+        if (!s) return;
+        const field = t.dataset.soalField;
+        const subIdx = t.dataset.subIdx;
+        const subField = t.dataset.subField;
+
+        if (field === 'opsi' && subIdx !== undefined) {
+          const i = parseInt(subIdx);
+          if (s.opsi && s.opsi[i]) {
+            s.opsi[i][subField] = t.value;
+          }
+        } else if (field === 'pasangan' && subIdx !== undefined) {
+          const i = parseInt(subIdx);
+          if (s.pasangan && s.pasangan[i]) {
+            s.pasangan[i][subField] = t.value;
+          }
+        } else if (field === 'drag_items' && subIdx !== undefined) {
+          const i = parseInt(subIdx);
+          if (s.drag_items) s.drag_items[i] = t.value;
+        } else if (field === 'drop_targets' && subIdx !== undefined) {
+          const i = parseInt(subIdx);
+          if (s.drop_targets) s.drop_targets[i] = t.value;
+        } else if (field === 'kunci_jawaban') {
+          s.kunci_jawaban = t.value;
+          // re-render untuk highlight kunci (hanya untuk pg/sebab-akibat)
+          if (s.tipe === 'pg' || s.tipe === 'sebab-akibat') {
+            renderSoalList();
+          }
+        } else if (field === 'bobot') {
+          s.bobot = parseFloat(t.value) || 0;
+        } else {
+          s[field] = t.value;
+        }
+        saveToStorage();
+        updateSidebar();
+      });
+
+      list.addEventListener('change', (e) => {
+        const t = e.target;
+        if (t.tagName === 'SELECT' && t.dataset.soalField === 'kunci_jawaban') {
+          const card = t.closest('[data-soal-idx]');
+          if (!card) return;
+          const idx = parseInt(card.dataset.soalIdx);
+          const s = state.soal[idx];
+          if (!s) return;
+          s.kunci_jawaban = t.value;
+          saveToStorage();
+          renderSoalList();
+        }
+      });
+    }
+
+    /* ============================================================
+       SIMPAN SEMUA (sync to GAS / localStorage)
+       ============================================================ */
+    async function simpanSemua() {
+      if (state.soal.length === 0) {
+        showToast('Belum ada soal untuk disimpan.', 'warning');
+        return;
+      }
+      // Validate: setiap soal harus ada pertanyaan
+      const emptyIdx = state.soal.findIndex(s => !s.pertanyaan || !s.pertanyaan.trim());
+      if (emptyIdx >= 0) {
+        const ok = await showConfirm(`Soal <strong>#${emptyIdx + 1}</strong> belum memiliki teks pertanyaan.<br><br>Tetap lanjut menyimpan?`, {
+          confirmText: 'Ya, Tetap Simpan'
+        });
+        if (!ok) return;
+      }
+      // Update config snapshot ke tiap soal
+      state.soal.forEach(s => {
+        s.mata_pelajaran = state.config.mata_pelajaran;
+        s.tanggal = state.config.tanggal;
+        s.waktu = state.config.waktu;
+        s.jumlah_soal = state.config.jumlah_soal;
+      });
+      saveToStorage();
+      showToast('Menyimpan ' + state.soal.length + ' soal...', 'info', 1500);
+      // Nama paket sudah divalidasi di atas
+      // Generate soal_id dari nama paket
+      const soalId = 'SOAL_' + new Date().toISOString().replace(/[-:T.Z]/g, '').substring(0, 14);
+      const res = await apiCall('simpanSoal', { 
+        soal: state.soal, 
+        config: state.config,
+        nama_paket: namaPaket,
+        soal_id: soalId
+      });
+      if (res.success) {
+        showToast('Berhasil simpan ' + (res.saved || state.soal.length) + ' soal' + (CONFIG.WEB_APP_URL ? ' ke spreadsheet.' : ' (localStorage).'), 'success');
+        await showAlert(`<strong>${state.soal.length} soal</strong> berhasil disimpan.<br><br>Mapel: <strong>${state.config.mata_pelajaran}</strong><br>Tanggal: ${state.config.tanggal}<br>Waktu: ${state.config.waktu} menit`, 'success', 'Tersimpan');
+        renderDaftarList();
+      } else {
+        showToast(res.error || 'Gagal simpan', 'error');
+      }
+    }
+
+    /* ============================================================
+       PREVIEW (render as student view)
+       ============================================================ */
+    function renderPreview() {
+      const area = document.getElementById('preview-area');
+      if (state.soal.length === 0) {
+        area.innerHTML = `<div class="text-center text-slate-400 py-10">Belum ada soal untuk di-preview.</div>`;
+        return;
+      }
+      const header = `
+        <div class="border-b border-slate-200 pb-4 mb-4">
+          <div class="flex items-center gap-3 mb-2">
+            <img src="${CONFIG.LOGO}" class="w-10 h-10 rounded-lg" />
+            <div>
+              <div class="font-extrabold text-slate-900">${state.config.mata_pelajaran}</div>
+              <div class="text-xs text-slate-500">${TIPE_LABEL[state.config.tipe]} • ${state.config.tanggal} • ${state.config.waktu} menit • ${state.soal.length} soal</div>
+            </div>
+          </div>
+        </div>
+      `;
+      const items = state.soal.map((s, i) => renderPreviewItem(s, i)).join('');
+      area.innerHTML = header + items;
+    }
+
+    function renderPreviewItem(s, i) {
+      const tipeBadge = `<span class="badge-tipe-${s.tipe} px-2 py-0.5 rounded-full text-xs font-semibold">${TIPE_LABEL[s.tipe]}</span>`;
+      const img = s.gambar_soal ? `<img src="${escapeAttr(s.gambar_soal)}" class="max-w-full max-h-60 rounded-lg my-2" onerror="this.style.display='none'" />` : '';
+      let body = '';
+      if (s.tipe === 'pg') {
+        body = (s.opsi || []).map(o => `
+          <div class="flex items-start gap-2 py-1 ${s.kunci_jawaban === o.huruf ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">
+            <div class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-xs font-bold flex-shrink-0">${o.huruf}</div>
+            <div class="flex-1 text-sm">
+              ${escapeHtml(o.teks)}
+              ${o.gambar ? `<img src="${escapeAttr(o.gambar)}" class="max-w-[160px] max-h-32 rounded mt-1" onerror="this.style.display='none'" />` : ''}
+            </div>
+            ${s.kunci_jawaban === o.huruf ? '<svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
+          </div>
+        `).join('');
+      } else if (s.tipe === 'sebab-akibat') {
+        body = `
+          <div class="space-y-2 mb-3">
+            <div class="p-2 rounded bg-blue-50 text-sm"><strong>Sebab:</strong> ${escapeHtml(s.sebab || '')}</div>
+            <div class="p-2 rounded bg-amber-50 text-sm"><strong>Akibat:</strong> ${escapeHtml(s.akibat || '')}</div>
+          </div>
+          ${(s.opsi || []).map(o => `
+            <div class="flex items-start gap-2 py-1 ${s.kunci_jawaban === o.huruf ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">
+              <div class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-xs font-bold flex-shrink-0">${o.huruf}</div>
+              <div class="text-sm">${escapeHtml(o.teks)}</div>
+            </div>
+          `).join('')}
+        `;
+      } else if (s.tipe === 'mencocokkan') {
+        body = `
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <div class="text-xs font-semibold text-slate-500 mb-1">Kolom Kiri</div>
+              ${(s.pasangan || []).map((p, j) => `<div class="text-sm py-1 border-b border-slate-100"><span class="font-mono text-xs text-slate-400">${j + 1}.</span> ${escapeHtml(p.kiri || '')}</div>`).join('')}
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 mb-1">Kolom Kanan (kunci urutan sama)</div>
+              ${(s.pasangan || []).map((p, j) => `<div class="text-sm py-1 border-b border-slate-100"><span class="font-mono text-xs text-slate-400">${String.fromCharCode(65 + j)}.</span> ${escapeHtml(p.kanan || '')}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      } else if (s.tipe === 'dragdrop') {
+        body = `
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div>
+              <div class="text-xs font-semibold text-slate-500 mb-1">Drag Items</div>
+              ${(s.drag_items || []).map((d, j) => `<div class="px-2 py-1 my-1 rounded bg-violet-50 text-sm border border-violet-100">▢ ${escapeHtml(d || 'Item ' + (j + 1))}</div>`).join('')}
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 mb-1">Drop Targets</div>
+              ${(s.drop_targets || []).map((d, j) => `<div class="px-2 py-1 my-1 rounded bg-blue-50 text-sm border border-blue-100 border-dashed">⬇ ${escapeHtml(d || 'Target ' + (j + 1))}</div>`).join('')}
+            </div>
+          </div>
+        `;
+      } else if (s.tipe === 'uraian') {
+        body = `
+          <textarea rows="4" disabled placeholder="Siswa akan mengetik jawaban di sini..." class="w-full px-3 py-2 rounded-lg border-2 border-slate-200 bg-slate-50 text-sm text-slate-400"></textarea>
+          <div class="mt-2 p-2 rounded bg-yellow-50 border border-yellow-100 text-xs">
+            <strong class="text-yellow-800">Rubrik Guru:</strong> <span class="text-slate-700">${escapeHtml(s.rubrik || '(belum diisi)')}</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-extrabold text-slate-900">${i + 1}.</span>
+            ${tipeBadge}
+            <span class="ml-auto text-xs text-slate-400">Bobot ${s.bobot}</span>
+          </div>
+          <div class="text-sm text-slate-800 leading-relaxed">${escapeHtml(s.pertanyaan || '(pertanyaan kosong)')}</div>
+          ${img}
+          <div class="mt-2">${body}</div>
+        </div>
+      `;
+    }
+
+    /* ============================================================
+       DAFTAR LIST (compact summary)
+       ============================================================ */
+    function renderDaftarList() {
+      const el = document.getElementById('daftar-list');
+      if (state.soal.length === 0) {
+        el.innerHTML = `<div class="card p-10 text-center text-slate-400">Belum ada soal. Buat di tab Editor Soal.</div>`;
+        return;
+      }
+      el.innerHTML = state.soal.map((s, i) => `
+        <div class="card p-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm">${i + 1}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="badge-tipe-${s.tipe} px-2 py-0.5 rounded-full text-xs font-semibold">${TIPE_LABEL[s.tipe]}</span>
+              <span class="font-mono text-xs text-slate-400">${s.id}</span>
+            </div>
+            <div class="text-sm text-slate-800 truncate">${escapeHtml((s.pertanyaan || '(kosong)').substring(0, 80))}${(s.pertanyaan || '').length > 80 ? '...' : ''}</div>
+            <div class="text-xs text-slate-400 mt-0.5">Bobot ${s.bobot} • Kunci: ${escapeHtml(s.kunci_jawaban || '—')} • ${s.gambar_soal ? '🖼️' : ''}${(s.opsi || []).filter(o => o.gambar).length > 0 ? ' +opsi gambar' : ''}</div>
+          </div>
+          <button onclick="navTo('editor')" class="text-xs px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold">Edit</button>
+        </div>
+      `).join('');
+    }
+
+    /* ============================================================
+       EXPORT JSON
+       ============================================================ */
+    function exportJson() {
+      if (state.soal.length === 0) {
+        showToast('Tidak ada soal untuk diexport.', 'warning');
+        return;
+      }
+      const data = {
+        meta: {
+          app: CONFIG.FULL_NAME,
+          version: CONFIG.VERSION,
+          exported_at: new Date().toISOString(),
+          guru: state.user ? state.user.username : 'unknown'
+        },
+        config: state.config,
+        soal: state.soal
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'scbt_soal_' + state.config.mata_pelajaran.toLowerCase().replace(/\s+/g, '_') + '_' + state.config.tanggal + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('JSON diexport (' + state.soal.length + ' soal).', 'success');
+    }
+
+    /* ============================================================
+       RENDER ALL
+       ============================================================ */
+    function renderAll() {
+      renderSoalList();
+      renderDaftarList();
+      renderPreview();
+      updateSidebar();
+    }
+
+    /* ============================================================
+       UTILITIES
+       ============================================================ */
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function escapeAttr(str) {
+      return escapeHtml(str);
+    }
+
+    /* ============================================================
+       ENTER KEY LISTENER (additional, ensures form Enter works
+       because Tailwind CDN script body is ignored by browser)
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+        // JANGAN trigger form submit jika sedang di input nama paket soal
+        if (e.target.id === 'nama-paket-soal') {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        var form = e.target.closest('form');
+        if (form) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+
+    /* ============================================================
+       INIT ON LOAD
+       ============================================================ */
+    (function init() {
+      bindConfigForm();
+      bindSoalListEvents();
+      // auto-restore session
+      const sess = loadSession();
+      if (sess && sess.user) {
+        state.user = sess.user;
+        document.getElementById('user-nama').textContent = sess.user.nama;
+        document.getElementById('screen-login').classList.add('hidden');
+        document.getElementById('screen-dashboard').classList.remove('hidden');
+        if (sess.user.mapel && MAPEL_LIST.includes(sess.user.mapel)) state.config.mata_pelajaran = sess.user.mapel;
+        loadFromStorage();
+        syncConfigForm();
+        renderAll();
+      } else {
+        // set default tanggal hari ini
+        document.getElementById('cfg-tanggal').value = state.config.tanggal;
+      }
+    })();
+  </script>
+</body>
+</html>
