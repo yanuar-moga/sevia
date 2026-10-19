@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SCBT Integrated System - Panel Proctor (Pengawas)" />
+  <title>SCBT System - Proctor</title>
+  <script src="https://cdn.tailwindcss.com">
+    /* ============================================================
+       ENTER KEY TRIGGER — Submit form dengan tekan Enter
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+        var form = e.target.closest('form');
+        if (form) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  </script>
+  <link rel="icon" href="https://yanuar-moga.github.io/cbt/assets/logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --royal: #1e3a8a;
+      --royal-dark: #172554;
+      --royal-light: #2563eb;
+      --neon: #a3e635;
+      --neon-dark: #84cc16;
+      --slate: #1e293b;
+      --slate-light: #334155;
+      --gray-bg: #f8fafc;
+    }
+    html, body { font-family: 'Inter', sans-serif; background: var(--gray-bg); -webkit-font-smoothing: antialiased; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .royal-gradient {
+      background: linear-gradient(135deg, #172554 0%, #1e3a8a 45%, #2563eb 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .royal-gradient::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(163,230,53,0.18) 0, transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(37,99,235,0.35) 0, transparent 45%);
+      pointer-events: none;
+    }
+    .logo-3d {
+      filter: drop-shadow(0 20px 40px rgba(163,230,53,0.35)) drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+      animation: floatY 6s ease-in-out infinite;
+    }
+    @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    .btn-neon {
+      background: linear-gradient(135deg, #bef264 0%, #a3e635 50%, #84cc16 100%);
+      color: #1e293b;
+      font-weight: 700;
+      box-shadow: 0 10px 30px -10px rgba(163,230,53,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-neon:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -10px rgba(163,230,53,0.7); filter: brightness(1.08); }
+    .btn-neon:active { transform: translateY(0); }
+
+    .btn-royal { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; font-weight: 600; box-shadow: 0 10px 30px -10px rgba(37,99,235,0.6); transition: all 0.2s; }
+    .btn-royal:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .card { background: white; border-radius: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px -10px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
+    .input-field { transition: all 0.2s ease; border: 2px solid #e2e8f0; }
+    .input-field:focus { border-color: var(--royal-light); box-shadow: 0 0 0 4px rgba(37,99,235,0.12); outline: none; }
+
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Toast — upgraded with icon, progress bar, slide-in bounce */
+    .toast {
+      animation: toastIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .toast::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: rgba(255,255,255,0.5);
+    }
+    .toast.toast-out { animation: toastOut 0.3s ease-in forwards; }
+    @keyframes toastIn {
+      0% { transform: translateX(120%) scale(0.8); opacity: 0; }
+      60% { transform: translateX(-8%) scale(1.02); opacity: 1; }
+      100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes toastOut {
+      0% { transform: translateX(0); opacity: 1; }
+      100% { transform: translateX(120%); opacity: 0; }
+    }
+    .toast-progress {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.7);
+      animation: progressShrink 4s linear forwards;
+    }
+    @keyframes progressShrink { from { width: 100%; } to { width: 0%; } }
+
+    /* Custom Popup Modal — SweetAlert-style dengan tema SCBT */
+    .popup-overlay {
+      position: fixed; inset: 0; z-index: 10002;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      animation: overlayIn 0.2s ease-out;
+    }
+    .popup-overlay.popup-out { animation: overlayOut 0.2s ease-in forwards; }
+    @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
+
+    .popup-card {
+      background: white;
+      border-radius: 1.25rem;
+      max-width: 28rem;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.05);
+      animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .popup-card.popup-out { animation: cardOut 0.25s ease-in forwards; }
+    @keyframes cardIn {
+      0% { transform: scale(0.7) translateY(20px); opacity: 0; }
+      60% { transform: scale(1.03) translateY(-4px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes cardOut {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.85) translateY(20px); opacity: 0; }
+    }
+
+    .popup-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 1.5rem auto 0;
+      animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    }
+    @keyframes iconPop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .popup-icon-success { background: linear-gradient(135deg, #bef264, #84cc16); }
+    .popup-icon-error   { background: linear-gradient(135deg, #fca5a5, #dc2626); }
+    .popup-icon-warning { background: linear-gradient(135deg, #fcd34d, #d97706); }
+    .popup-icon-info    { background: linear-gradient(135deg, #93c5fd, #1e3a8a); }
+    .popup-icon-question{ background: linear-gradient(135deg, #c4b5fd, #6d28d9); }
+    .popup-icon svg { width: 44px; height: 44px; color: white; stroke-width: 2.5; }
+
+    .popup-icon-success svg { animation: checkDraw 0.5s ease-out 0.4s both; }
+    @keyframes checkDraw {
+      0% { stroke-dashoffset: 30; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .popup-icon-error svg { animation: shake 0.5s ease-out 0.4s; }
+    @keyframes shake {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-8deg); }
+      75% { transform: rotate(8deg); }
+    }
+
+    .popup-body { padding: 1.25rem 1.5rem 1.5rem; text-align: center; }
+    .popup-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+    .popup-message { font-size: 0.95rem; color: #64748b; line-height: 1.5; }
+    .popup-actions { display: flex; gap: 0.75rem; padding: 0 1.5rem 1.5rem; }
+    .popup-actions button { flex: 1; padding: 0.75rem 1rem; border-radius: 0.75rem; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+    .popup-btn-cancel { background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; }
+    .popup-btn-cancel:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .popup-btn-confirm {
+      background: linear-gradient(135deg, #bef264, #a3e635 50%, #84cc16);
+      color: #1e293b;
+      box-shadow: 0 8px 20px -8px rgba(163, 230, 53, 0.6);
+    }
+    .popup-btn-confirm:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 12px 28px -8px rgba(163, 230, 53, 0.8); }
+    .popup-btn-danger {
+      background: linear-gradient(135deg, #f87171, #dc2626);
+      color: white;
+      box-shadow: 0 8px 20px -8px rgba(220, 38, 38, 0.6);
+    }
+    .popup-btn-danger:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .popup-btn-ok {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white;
+      box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.6);
+    }
+    .popup-btn-ok:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .status-pill { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-belum { background: #f1f5f9; color: #64748b; }
+    .status-sedang { background: #dbeafe; color: #2563eb; }
+    .status-selesai { background: #dcfce7; color: #16a34a; }
+    .status-terkunci { background: #fee2e2; color: #dc2626; }
+    .status-terkeluar { background: #fef3c7; color: #d97706; }
+
+    .nav-item { transition: all 0.15s ease; }
+    .nav-item.active { background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1e293b; font-weight: 600; }
+    .nav-item:not(.active):hover { background: #f1f5f9; color: #1e3a8a; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    .pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.4); } }
+
+    .live-indicator::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulseDot 1.5s ease-in-out infinite;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      .print-area, .print-area * { visibility: visible; }
+      .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ============================================================
+       SCREEN 1: LOGIN PROCTOR
+       ============================================================ -->
+  <div id="screen-login" class="min-h-screen grid lg:grid-cols-2">
+    <div class="royal-gradient text-white p-8 lg:p-12 flex flex-col justify-between relative hidden lg:flex">
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-12">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-14 h-14 logo-3d rounded-2xl bg-white/10 p-1.5" />
+          <div>
+            <h1 class="text-2xl font-extrabold tracking-tight">SCBT Integrated System</h1>
+            <p class="text-blue-200 text-sm">SEVIA • Smart Examination & Virtual Assessment</p>
+          </div>
+        </div>
+        <div class="space-y-6 max-w-md">
+          <h2 class="text-4xl font-extrabold leading-tight">Pengawas <span class="text-lime-300">Ruangan</span></h2>
+          <p class="text-blue-100 text-lg leading-relaxed">
+            Pantau seluruh aktivitas ujian siswa di ruangan Anda secara real-time.
+            Kelola token, blokir pelanggaran, dan broadcast pengumuman dengan mudah.
+          </p>
+          <div class="grid grid-cols-3 gap-3 pt-4">
+            <div class="bg-white/10 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-lime-300">Live</div><div class="text-xs text-blue-200">Monitoring</div></div>
+            <div class="bg-white/10 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-lime-300">5</div><div class="text-xs text-blue-200">Tools</div></div>
+            <div class="bg-white/10 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-lime-300">Auto</div><div class="text-xs text-blue-200">Sync</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="relative z-10 pt-12 border-t border-white/10">
+        <div class="text-blue-300 text-xs">Developed by MB • v1.1 • Build 2025.11.01</div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center p-6 sm:p-10 bg-white">
+      <div class="w-full max-w-md fade-in">
+        <div class="lg:hidden flex items-center gap-3 mb-8 justify-center">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-12 h-12 logo-3d" />
+          <div><h1 class="text-xl font-extrabold text-slate-900">SCBT System</h1><p class="text-slate-500 text-xs">Proctor Panel</p></div>
+        </div>
+
+        <div class="mb-8">
+          <div class="inline-block px-3 py-1 rounded-full bg-blue-100 text-royal-blue text-xs font-semibold mb-3">PENGAWAS UJIAN</div>
+          <h2 class="text-3xl font-extrabold text-slate-900">Login Proctor</h2>
+          <p class="text-slate-500 mt-2">Masuk untuk memantau ruangan ujian Anda.</p>
+        </div>
+
+        <form id="login-form" class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+            <input id="login-username" type="text" required placeholder="proctor01" class="input-field w-full px-4 py-3 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+            <div class="relative">
+              <input id="login-password" type="password" required placeholder="••••••••" class="input-field w-full px-4 py-3 pr-12 rounded-xl" />
+              <button type="button" onclick="togglePwd('login-password')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn-neon w-full py-3.5 rounded-xl">Masuk Panel</button>
+        </form>
+
+        <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+          <button onclick="showAppInfo()" class="text-xs text-slate-400 hover:text-royal-blue transition">
+            About SCBT Version 1.1
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       SCREEN 2: DASHBOARD PROCTOR
+       ============================================================ -->
+  <div id="screen-dashboard" class="hidden min-h-screen">
+    <!-- Top bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="https://yanuar-moga.github.io/cbt/assets/logo.png" class="w-10 h-10 rounded-lg" />
+          <div>
+            <div class="text-sm font-bold text-slate-900">SCBT Integrated System</div>
+            <div class="text-xs text-slate-500">Panel Proctor</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+            <span class="live-indicator">LIVE</span>
+          </div>
+          <div class="text-right hidden sm:block">
+            <div id="user-nama" class="text-sm font-semibold text-slate-900"></div>
+            <div id="user-ruangan" class="text-xs text-slate-500"></div>
+          </div>
+          <button onclick="logout()" class="px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 font-semibold">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid lg:grid-cols-[240px_1fr] gap-6">
+      <!-- Sidebar -->
+      <aside class="lg:sticky lg:top-20 h-fit">
+        <nav class="card p-3 space-y-1">
+          <button onclick="navTo('monitoring')" data-nav="monitoring" class="nav-item active w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Monitoring Siswa
+          </button>
+          <button onclick="navTo('token')" data-nav="token" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            Generate Token
+          </button>
+          <button onclick="navTo('broadcast')" data-nav="broadcast" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6a4.001 4.001 0 012.564 7.683l-2.147 6.15A1.76 1.76 0 014 19.24V13.683"/></svg>
+            Broadcast Pesan
+          </button>
+          <button onclick="navTo('berita')" data-nav="berita" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Berita Acara
+          </button>
+          <button onclick="navTo('soal')" data-nav="soal" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Pengaturan Soal
+          </button>
+          <button onclick="navTo('reset')" data-nav="reset" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Reset Login
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main>
+        <!-- Tab: Monitoring -->
+        <div id="tab-monitoring" class="space-y-4">
+          <!-- Stats cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="card p-4"><div class="text-xs text-slate-500 font-semibold">Total Siswa</div><div id="stat-total" class="text-2xl font-extrabold text-slate-900 mt-1">0</div></div>
+            <div class="card p-4"><div class="text-xs text-slate-500 font-semibold">Sedang Mengerjakan</div><div id="stat-sedang" class="text-2xl font-extrabold text-blue-600 mt-1">0</div></div>
+            <div class="card p-4"><div class="text-xs text-slate-500 font-semibold">Selesai</div><div id="stat-selesai" class="text-2xl font-extrabold text-emerald-600 mt-1">0</div></div>
+            <div class="card p-4"><div class="text-xs text-slate-500 font-semibold">Terkunci</div><div id="stat-terkunci" class="text-2xl font-extrabold text-red-600 mt-1">0</div></div>
+            <div class="card p-4"><div class="text-xs text-slate-500 font-semibold">Belum Login</div><div id="stat-belum" class="text-2xl font-extrabold text-slate-500 mt-1">0</div></div>
+          </div>
+
+          <div class="card p-4">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-900">Daftar Siswa di Ruangan Anda</h3>
+              <div class="flex items-center gap-2">
+                <input id="search-siswa" type="text" placeholder="Cari siswa..." oninput="renderSiswaTable()" class="input-field px-3 py-1.5 rounded-lg text-sm w-48" />
+                <button onclick="loadSiswa()" class="btn-royal px-3 py-1.5 rounded-lg text-sm">Refresh</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b border-slate-200">
+                    <th class="py-2 px-3 font-semibold">Username</th>
+                    <th class="py-2 px-3 font-semibold">Nama</th>
+                    <th class="py-2 px-3 font-semibold">Kelas</th>
+                    <th class="py-2 px-3 font-semibold">Status</th>
+                    <th class="py-2 px-3 font-semibold">Waktu Mulai</th>
+                    <th class="py-2 px-3 font-semibold">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="siswa-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Violation log -->
+          <div class="card p-4">
+            <h3 class="font-bold text-slate-900 mb-3">Log Pelanggaran Terbaru</h3>
+            <div id="violation-log" class="space-y-2 max-h-64 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Generate Token -->
+        <div id="tab-token" class="hidden space-y-4">
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 text-lg mb-2">Generate Token Siswa</h3>
+            <p class="text-slate-500 text-sm mb-4">Pilih siswa untuk generate token ujian baru. Token lama akan otomatis tidak berlaku.</p>
+            <div class="grid sm:grid-cols-3 gap-3 mb-4">
+              <input id="token-username" type="text" placeholder="Username siswa" class="input-field px-4 py-2.5 rounded-xl sm:col-span-2" />
+              <button onclick="generateToken()" class="btn-neon py-2.5 rounded-xl">Generate Token</button>
+            </div>
+            <div id="token-result" class="hidden p-4 rounded-xl bg-lime-50 border border-lime-300">
+              <div class="text-xs font-semibold text-lime-700 uppercase mb-1">Token Baru</div>
+              <div class="font-mono text-2xl font-bold text-slate-900" id="token-display"></div>
+              <button onclick="copyToken()" class="btn-royal mt-3 px-4 py-2 rounded-lg text-sm">Salin Token</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Broadcast -->
+        <div id="tab-broadcast" class="hidden space-y-4">
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 text-lg mb-4">Broadcast Pesan ke Siswa</h3>
+            <div class="space-y-4">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Target Penerima</label>
+                  <select id="bc-target" class="input-field w-full px-3 py-2 rounded-lg text-sm">
+                    <option value="ALL">Semua Siswa di Ruangan</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Tipe Pesan</label>
+                  <select id="bc-tipe" class="input-field w-full px-3 py-2 rounded-lg text-sm">
+                    <option value="pengumuman">Pengumuman</option>
+                    <option value="peringatan">Peringatan</option>
+                    <option value="info_waktu">Info Waktu</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Isi Pesan</label>
+                <textarea id="bc-pesan" rows="4" placeholder="Tulis pesan..." class="input-field w-full px-4 py-2.5 rounded-xl resize-none"></textarea>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="kirimBroadcast()" class="btn-neon px-6 py-2.5 rounded-xl">Kirim Broadcast</button>
+                <button onclick="document.getElementById('bc-pesan').value=''" class="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Reset</button>
+              </div>
+              <div class="text-xs text-slate-500">
+                Quick template:
+                <button onclick="setQuickMsg('Sisa waktu ujian 10 menit lagi. Tolong periksa kembali jawaban Anda.')" class="ml-2 text-royal-blue hover:underline">10 menit lagi</button> ·
+                <button onclick="setQuickMsg('Tetap fokus pada soal. Jangan keluar dari mode fullscreen.')" class="text-royal-blue hover:underline">Tetap fokus</button> ·
+                <button onclick="setQuickMsg('Pengumuman: teknis ujian berjalan normal. Lanjutkan mengerjakan.')" class="text-royal-blue hover:underline">Pengumuman teknis</button>
+              </div>
+            </div>
+          </div>
+          <div class="card p-4">
+            <h3 class="font-bold text-slate-900 mb-3">Riwayat Broadcast</h3>
+            <div id="broadcast-history" class="space-y-2 max-h-64 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Berita Acara -->
+        <div id="tab-berita" class="hidden space-y-4">
+          <!-- Form konfigurasi kop (sama seperti di admin.html) -->
+          <div class="card p-5 bg-gradient-to-br from-blue-50 to-slate-50">
+            <div class="flex items-center gap-2 mb-3">
+              <svg class="w-5 h-5 text-royal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <h3 class="font-bold text-slate-900">Konfigurasi Kop Surat &amp; Penandatangan</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Isi data di bawah sekali — akan tersimpan otomatis di browser. Digunakan untuk kop berita acara &amp; daftar hadir.</p>
+
+            <div class="grid lg:grid-cols-3 gap-4 mb-4">
+              <!-- Kolom 1: Identitas Sekolah -->
+              <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Identitas Sekolah</div>
+                <div class="space-y-2">
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Sekolah</label><input id="kop-nama-sekolah" type="text" placeholder="SMA Negeri 1 Contoh" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NPSN</label><input id="kop-npsn" type="text" placeholder="20100123" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Kabupaten</label><input id="kop-kabupaten" type="text" placeholder="Moga" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Provinsi</label><input id="kop-provinsi" type="text" placeholder="Jawa Tengah" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Kolom 2: Detail Pelaksanaan -->
+              <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Detail Pelaksanaan</div>
+                <div class="space-y-2">
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Hari</label><input id="kop-hari" type="text" placeholder="Senin" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Tanggal</label><input id="kop-tanggal-ujian" type="text" placeholder="15 Oktober 2025" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Pukul</label><input id="kop-pukul" type="text" placeholder="08:00 - 09:30" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                    <div><label class="block text-xs text-slate-600 mb-0.5">Alokasi Waktu</label><input id="kop-alokasi" type="text" placeholder="90 menit" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  </div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Mode Pelaksanaan</label><input id="kop-mode" type="text" value="Online" class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                </div>
+              </div>
+
+              <!-- Kolom 3: Penandatangan -->
+              <div class="bg-white rounded-xl p-4 border border-slate-200">
+                <div class="text-xs font-bold text-royal-blue uppercase tracking-wide mb-2">Data Penandatangan</div>
+                <div class="space-y-2">
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Kepala Sekolah</label><input id="kop-nama-kepsek" type="text" placeholder="Drs. Budi, M.Pd." class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NIP Kepala Sekolah</label><input id="kop-nip-kepsek" type="text" placeholder="19650101 199001 1 001" class="input-field w-full px-2 py-1.5 rounded-lg text-sm font-mono" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Proktor</label><input id="kop-nama-proktor" type="text" placeholder="Budi Santoso, S.Pd." class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NIP Proktor</label><input id="kop-nip-proktor" type="text" placeholder="19800101 200501 1 001" class="input-field w-full px-2 py-1.5 rounded-lg text-sm font-mono" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">Nama Pengawas</label><input id="kop-nama-pengawas" type="text" placeholder="Siti Aminah, S.Pd." class="input-field w-full px-2 py-1.5 rounded-lg text-sm" /></div>
+                  <div><label class="block text-xs text-slate-600 mb-0.5">NIP Pengawas</label><input id="kop-nip-pengawas" type="text" placeholder="19850101 200801 2 002" class="input-field w-full px-2 py-1.5 rounded-lg text-sm font-mono" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <button onclick="simpanKopConfig()" class="btn-neon px-5 py-2 rounded-lg text-sm">Simpan Konfigurasi</button>
+              <button onclick="resetKopConfig()" class="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 font-semibold text-sm">Reset ke Default</button>
+            </div>
+          </div>
+
+          <!-- Form berita acara -->
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 text-lg mb-4">Berita Acara Pelaksanaan Ujian</h3>
+            <div class="grid sm:grid-cols-2 gap-3 mb-4">
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Hari / Tanggal</label><input id="ba-tanggal" type="text" placeholder="Senin, 15 Oktober 2025" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Waktu</label><input id="ba-waktu" type="text" placeholder="08:00 - 09:30 WIB" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Mata Pelajaran</label><input id="ba-mapel" type="text" placeholder="Matematika" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+              <div><label class="block text-xs font-semibold text-slate-700 mb-1">Kelas</label><input id="ba-kelas" type="text" placeholder="XII-IPA-1" class="input-field w-full px-3 py-2 rounded-lg text-sm" /></div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Peserta Hadir / Tidak Hadir</label>
+              <div class="grid grid-cols-2 gap-3">
+                <input id="ba-hadir" type="number" placeholder="Hadir: 40" class="input-field px-3 py-2 rounded-lg text-sm" />
+                <input id="ba-tidakhadir" type="number" placeholder="Tidak Hadir: 0" class="input-field px-3 py-2 rounded-lg text-sm" />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Pengawas</label>
+              <textarea id="ba-catatan" rows="4" placeholder="Pelaksanaan ujian berjalan dengan lancar / ada kendala teknis di peserta X / ..." class="input-field w-full px-4 py-2.5 rounded-xl resize-none"></textarea>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="simpanBeritaAcara()" class="btn-neon px-6 py-2.5 rounded-xl">Simpan Berita Acara</button>
+              <button onclick="cetakBeritaAcara()" class="btn-royal px-6 py-2.5 rounded-xl">Cetak / Print</button>
+            </div>
+          </div>
+        </div>
+
+
+                <!-- Tab: Pengaturan Soal -->
+        <div id="tab-soal" class="hidden space-y-4">
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 text-lg mb-2 flex items-center gap-2">
+              <svg class="w-5 h-5 text-royal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              Pengaturan Soal Ujian
+            </h3>
+            <p class="text-slate-500 text-sm mb-4">Atur mode soal untuk siswa di ruangan Anda. Default ditentukan oleh Admin, tapi Anda dapat mengubahnya.</p>
+            
+            <!-- Status default dari admin -->
+            <div id="soal-default-info" class="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-xs text-slate-500 uppercase tracking-wide mb-1">Default dari Admin</div>
+              <div id="soal-default-detail" class="text-sm text-slate-700">Memuat...</div>
+            </div>
+            
+            <!-- Override Proctor -->
+            <div class="space-y-4">
+              <label class="block text-sm font-semibold text-slate-700 mb-2">Mode Soal untuk Ruangan Anda:</label>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition" id="proktor-mode-cbt-label">
+                  <input type="radio" id="proktor-mode-cbt" name="proktor-soal-mode" value="cbt" class="w-4 h-4 accent-lime-500" checked />
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm">📝 Sistem CBT SEVIA</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Soal dari spreadsheet</div>
+                  </div>
+                </label>
+                <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition" id="proktor-mode-gform-label">
+                  <input type="radio" id="proktor-mode-gform" name="proktor-soal-mode" value="gform" class="w-4 h-4 accent-lime-500" />
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm">📋 Google Form</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Soal dari Google Form</div>
+                  </div>
+                </label>
+              </div>
+              
+              <!-- Pilihan soal CBT -->
+              <div id="proktor-cbt-section" class="hidden">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Paket Soal:</label>
+                <select id="proktor-soal-id-select" class="input-field w-full px-3 py-2.5 rounded-xl text-sm">
+                  <option value="">— Pilih Paket Soal —</option>
+                </select>
+              </div>
+              
+              <!-- URL Google Form -->
+              <div id="proktor-gform-section" class="hidden">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">URL Google Form (embed)</label>
+                <input id="proktor-gform-url" type="text" placeholder="https://docs.google.com/forms/d/e/XXXX/viewform?embedded=true" 
+                  class="input-field w-full px-4 py-3 rounded-xl text-sm font-mono" />
+              </div>
+              
+              <div class="flex gap-2">
+                <button onclick="saveSoalModeProctor()" class="btn-neon px-6 py-2.5 rounded-xl text-sm">Simpan Pengaturan</button>
+                <button onclick="resetSoalModeProctor()" class="px-4 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold text-sm">Reset ke Default Admin</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Reset Login -->
+        <div id="tab-reset" class="hidden space-y-4">
+          <div class="card p-6">
+            <h3 class="font-bold text-slate-900 text-lg mb-2">Reset Login Siswa</h3>
+            <p class="text-slate-500 text-sm mb-4">Fitur darurat untuk reset status login siswa. Digunakan jika komputer siswa mengalami error/mati lampu sehingga siswa bisa login ulang.</p>
+            <div class="grid sm:grid-cols-3 gap-3 mb-4">
+              <input id="reset-username" type="text" placeholder="Username siswa (kosongkan untuk massal)" class="input-field px-4 py-2.5 rounded-xl sm:col-span-2" />
+              <button onclick="resetLoginSiswa()" class="btn-royal py-2.5 rounded-xl">Reset Per Siswa</button>
+            </div>
+            <div class="bg-amber-50 border border-amber-300 rounded-xl p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                <h4 class="font-bold text-amber-800">Reset Massal - Seluruh Ruangan</h4>
+              </div>
+              <p class="text-sm text-amber-700 mb-3">Tindakan ini akan mereset status login <strong>SEMUA siswa</strong> di ruangan <strong id="reset-ruangan-name"></strong>. Semua siswa akan dipaksa logout dan harus login kembali.</p>
+              <button onclick="resetLoginMassal()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold">Reset Massal Sekarang</button>
+            </div>
+          </div>
+        </div>
+          </main>
+    
+    <!-- Footer dashboard -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center">
+      <button onclick="showAppInfo()" class="text-xs text-slate-400 hover:text-royal-blue transition">
+        About SCBT Version 1.1
+      </button>
+    </footer>
+  </div>
+  </div>
+
+  <!-- ============================================================
+       TOAST
+       ============================================================ -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[10000] space-y-2"></div>
+
+  <!-- ============================================================
+       APP INFO MODAL
+       ============================================================ -->
+  <div id="modal-info" class="hidden fixed inset-0 z-[10001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-8 fade-in">
+      <div class="text-center mb-6">
+        <img src="https://yanuar-moga.github.io/cbt/assets/sevia.png" class="max-h-24 max-w-[80%] w-auto mx-auto mb-3" alt="SEVIA Logo" style="object-fit: contain;" />
+        <h3 class="text-xl font-extrabold text-slate-900">SCBT Integrated System</h3>
+        <p class="text-slate-500 text-sm">Smart Examination & Virtual Assessment (SEVIA)</p>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Pengembang</span><span class="font-semibold text-slate-900">MB</span></div>
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Build</span><span class="font-mono text-slate-900">2025.10.03</span></div>
+        <div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-500">Versi</span><span class="font-mono text-slate-900">v1.1</span></div>
+        <div class="flex justify-between py-2"><span class="text-slate-500">Kontak Email</span><a href="mailto:yanuar.b@gmail.com" class="font-semibold text-royal-blue hover:underline">yanuar.b@gmail.com</a></div>
+      </div>
+      <button onclick="closeAppInfo()" class="btn-royal w-full py-3 rounded-xl mt-6">Tutup</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       UNLOCK MODAL (Konfirmasi buka kunci siswa)
+       ============================================================ -->
+  <div id="modal-unlock" class="hidden fixed inset-0 z-[10001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="card max-w-md w-full p-6 fade-in">
+      <h3 class="font-extrabold text-lg text-slate-900 mb-2">Buka Kunci Siswa?</h3>
+      <p class="text-sm text-slate-600 mb-4">Anda akan membuka kunci layar siswa berikut:</p>
+      <div class="bg-slate-50 rounded-xl p-3 mb-4">
+        <div class="text-xs text-slate-500">Username</div>
+        <div id="ul-username" class="font-mono font-bold text-slate-900"></div>
+        <div class="text-xs text-slate-500 mt-2">Nama</div>
+        <div id="ul-nama" class="font-bold text-slate-900"></div>
+        <div class="text-xs text-slate-500 mt-2">Pelanggaran</div>
+        <div id="ul-violation" class="text-red-600 font-semibold text-sm"></div>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="closeUnlock()" class="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-semibold">Batal</button>
+        <button onclick="confirmUnlock()" class="flex-1 btn-neon py-2.5 rounded-xl">Ya, Buka Kunci</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       CONFIG
+       ============================================================ */
+    const CONFIG = {
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzvTsgX8Gl8xcVjhP8NjYzLONMSZqj__WJ2On0R-rtyZ-EgefcV5zvRbXG7B1VJ6Di6/exec',
+      LOGO: 'https://yanuar-moga.github.io/cbt/assets/logo.png',
+      APP_NAME: 'SCBT',
+      FULL_NAME: 'SCBT Integrated System (SEVIA)',
+      TAGLINE: 'Smart Examination & Virtual Assessment',
+      VERSION: 'v1.1'
+    };
+
+    const STORAGE_KEY = 'cbt_proctor_session';
+
+    function loadSession() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) { return null; } }
+    function saveSession(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+    function clearSession() { localStorage.removeItem(STORAGE_KEY); }
+
+    let state = {
+      user: null,
+      siswa: [],
+      violations: [],
+      broadcasts: [],
+      pollingInterval: null,
+      currentUnlockUsername: null
+    };
+
+    /* ============================================================
+       DEMO DATA
+       ============================================================ */
+    const DEMO_SISWA = [
+      { username: 'siswa001', nama_lengkap: 'Ahmad Fadli', kelas: 'XII-IPA-1', status_login: 'sedang_login', status_ujian: 'sedang_mengerjakan', waktu_mulai: '2025-10-15 08:00:23', proctor_username: 'proctor01' },
+      { username: 'siswa002', nama_lengkap: 'Dewi Lestari', kelas: 'XII-IPA-1', status_login: 'sedang_login', status_ujian: 'terkunci', waktu_mulai: '2025-10-15 08:00:45', proctor_username: 'proctor01' },
+      { username: 'siswa003', nama_lengkap: 'Rizki Pratama', kelas: 'XII-IPA-1', status_login: 'sedang_login', status_ujian: 'selesai', waktu_mulai: '2025-10-15 08:01:00', proctor_username: 'proctor01' },
+      { username: 'siswa004', nama_lengkap: 'Siti Nurhaliza', kelas: 'XII-IPA-1', status_login: 'belum_login', status_ujian: 'belum_mulai', waktu_mulai: '', proctor_username: 'proctor01' },
+      { username: 'siswa005', nama_lengkap: 'Bayu Saputra', kelas: 'XII-IPA-1', status_login: 'sedang_login', status_ujian: 'sedang_mengerjakan', waktu_mulai: '2025-10-15 08:00:55', proctor_username: 'proctor01' },
+      { username: 'siswa006', nama_lengkap: 'Putri Anggraini', kelas: 'XII-IPA-1', status_login: 'sedang_login', status_ujian: 'sedang_mengerjakan', waktu_mulai: '2025-10-15 08:02:10', proctor_username: 'proctor01' },
+      { username: 'siswa007', nama_lengkap: 'Doni Kurniawan', kelas: 'XII-IPA-1', status_login: 'belum_login', status_ujian: 'belum_mulai', waktu_mulai: '', proctor_username: 'proctor01' },
+      { username: 'siswa008', nama_lengkap: 'Indah Permata', kelas: 'XII-IPA-1', status_login: 'sedang_login', status_ujian: 'terkunci', waktu_mulai: '2025-10-15 08:01:30', proctor_username: 'proctor01' }
+    ];
+
+    const DEMO_VIOLATIONS = [
+      { timestamp: '2025-10-15 08:15:23', username: 'siswa002', nama_lengkap: 'Dewi Lestari', jenis_pelanggaran: 'keluar_fullscreen', deskripsi: 'Siswa keluar dari mode fullscreen', status_blokir: 'terkunci' },
+      { timestamp: '2025-10-15 08:30:11', username: 'siswa008', nama_lengkap: 'Indah Permata', jenis_pelanggaran: 'buka_tab_baru', deskripsi: 'Siswa mencoba membuka tab baru', status_blokir: 'terkunci' },
+      { timestamp: '2025-10-15 08:45:00', username: 'siswa001', nama_lengkap: 'Ahmad Fadli', jenis_pelanggaran: 'shortcut_mencurigakan', deskripsi: 'Ctrl+C ditekan', status_blokir: 'dibuka' }
+    ];
+
+    /* ============================================================
+       API HELPER
+       ============================================================ */
+    async function apiCall(action, payload) {
+      if (!CONFIG.WEB_APP_URL) return mockApi(action, payload);
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action }, payload)) });
+        return await res.json();
+      } catch (e) { return { success: false, error: e.message }; }
+    }
+
+    function mockApi(action, p) {
+      if (action === 'loginProctor') {
+        return { success: true, sessionToken: 'demo-' + Date.now(),
+          user: { username: p.username, nama: 'Demo Proctor (' + p.username + ')', ruangan: 'Ruang A-101', sesi: 'Sesi 1', token_proctor: 'PRC-DEMO-2025', role: 'proctor' } };
+      }
+      if (action === 'getSiswaByProctor') return { success: true, siswa: DEMO_SISWA };
+      if (action === 'generateTokenSiswa') {
+        const token = p.token || ('TKN-' + Math.random().toString(36).substr(2,8).toUpperCase() + '-2025');
+        return { success: true, token: token };
+      }
+      if (action === 'unblockSiswa') { const s = DEMO_SISWA.find(x => x.username === p.username); if (s) s.status_ujian = 'sedang_mengerjakan'; return { success: true }; }
+      if (action === 'resetLoginSiswa') { const s = DEMO_SISWA.find(x => x.username === p.username); if (s) { s.status_login = 'belum_login'; s.status_ujian = 'belum_mulai'; s.waktu_mulai = ''; } return { success: true }; }
+      if (action === 'resetLoginMassal') { DEMO_SISWA.forEach(s => { s.status_login = 'belum_login'; s.status_ujian = 'belum_mulai'; s.waktu_mulai = ''; }); return { success: true, reset_count: DEMO_SISWA.length }; }
+      if (action === 'kirimBroadcast') { state.broadcasts.unshift({ timestamp: new Date().toISOString(), target_username: p.target, tipe_broadcast: p.tipe, isi_pesan: p.pesan, proctor_username: state.user?.username }); return { success: true }; }
+      if (action === 'simpanBeritaAcara') return { success: true };
+      if (action === 'getSoalMode') {
+        return { success: true, mode: 'cbt', gform_url: '', soal_id: '', source: 'default' };
+      }
+      if (action === 'saveSoalMode') {
+        return { success: true, mode: p.mode, ruangan: p.ruangan || '' };
+      }
+      if (action === 'getAllSoal') {
+        return { success: true, soal: [] };
+      }
+      return { success: false, error: 'Unknown action' };
+    }
+
+    /* ============================================================
+       UI HELPERS
+       ============================================================ */
+    /* ============================================================
+       POPUP SYSTEM — Toast, Alert, Confirm (SweetAlert-style)
+       ============================================================ */
+    const POPUP_ICONS = {
+      success: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>',
+      error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>',
+      warning: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+      info: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      question: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.5-1.5 2.5-3 3-.5.25-1 .75-1 1.5M12 18h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+    };
+    const POPUP_TITLES = {
+      success: 'Berhasil!', error: 'Terjadi Kesalahan',
+      warning: 'Peringatan', info: 'Informasi', question: 'Konfirmasi'
+    };
+
+    function showToast(msg, type = 'info', duration = 4000) {
+      const colors = { info: 'bg-blue-600', success: 'bg-emerald-500', error: 'bg-red-500', warning: 'bg-amber-500' };
+      const el = document.createElement('div');
+      el.className = `toast ${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg max-w-sm flex items-center gap-3`;
+      const iconSvg = POPUP_ICONS[type] || POPUP_ICONS.info;
+      el.innerHTML = `
+        <div class="w-5 h-5 flex-shrink-0">${iconSvg.replace('<svg', '<svg style="width:20px;height:20px;"')}</div>
+        <div class="flex-1 text-sm font-medium">${msg}</div>
+        <button onclick="this.parentElement.classList.add('toast-out'); setTimeout(()=>this.parentElement.remove(),300)" class="text-white/70 hover:text-white flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="toast-progress"></div>
+      `;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 300); }, duration);
+    }
+
+    function showPopup(opts) {
+      return new Promise((resolve) => {
+        const { type = 'info', title, message, confirmText = 'OK', cancelText = 'Batal', showCancel = false, danger = false } = opts;
+        const iconSvg = POPUP_ICONS[type] || POPUP_ICONS.info;
+        const finalTitle = title || POPUP_TITLES[type] || 'Informasi';
+        const overlay = document.createElement('div');
+        overlay.className = 'popup-overlay';
+        overlay.innerHTML = `
+          <div class="popup-card">
+            <div class="popup-icon popup-icon-${type}">${iconSvg}</div>
+            <div class="popup-body">
+              <div class="popup-title">${finalTitle}</div>
+              <div class="popup-message">${message}</div>
+            </div>
+            <div class="popup-actions">
+              ${showCancel ? `<button class="popup-btn-cancel" data-action="cancel">${cancelText}</button>` : ''}
+              <button class="${danger ? 'popup-btn-danger' : (type === 'success' ? 'popup-btn-confirm' : 'popup-btn-ok')}" data-action="ok">${confirmText}</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        const close = (result) => {
+          overlay.classList.add('popup-out');
+          const card = overlay.querySelector('.popup-card');
+          if (card) card.classList.add('popup-out');
+          setTimeout(() => overlay.remove(), 250);
+          resolve(result);
+        };
+        overlay.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+        const cancelBtn = overlay.querySelector('[data-action="cancel"]');
+        if (cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+        overlay.addEventListener('click', (e) => { if (e.target === overlay && !showCancel) close(true); });
+      });
+    }
+
+    function showConfirm(message, opts = {}) {
+      return showPopup({
+        type: opts.type || 'question',
+        title: opts.title || 'Konfirmasi',
+        message: message, showCancel: true,
+        confirmText: opts.confirmText || 'Ya, Lanjutkan',
+        cancelText: opts.cancelText || 'Batal',
+        danger: opts.danger || false
+      });
+    }
+
+    function showAlert(message, type = 'info', title = null) {
+      return showPopup({ type: type, title: title, message: message, showCancel: false, confirmText: 'OK, Mengerti' });
+    }
+    const toast = showToast;
+    function togglePwd(id) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; }
+    function showAppInfo() { document.getElementById('modal-info').classList.remove('hidden'); }
+    function closeAppInfo() { document.getElementById('modal-info').classList.add('hidden'); }
+
+    function navTo(tab) {
+      ['monitoring', 'token', 'broadcast', 'berita', 'soal', 'reset'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.classList.add('hidden');
+        const nav = document.querySelector(`[data-nav="${t}"]`);
+        if (nav) nav.classList.remove('active');
+      });
+      const tabEl = document.getElementById('tab-' + tab);
+      if (tabEl) tabEl.classList.remove('hidden');
+      const navEl = document.querySelector(`[data-nav="${tab}"]`);
+      if (navEl) navEl.classList.add('active');
+      // Auto-load kop config saat masuk tab berita
+      if (tab === 'berita') loadKopConfig();
+      // Auto-load soal saat masuk tab soal
+      if (tab === 'soal') loadProctorSoalMode();
+    }
+
+    /* ============================================================
+       LOGIN
+       ============================================================ */
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!username || !password) { showToast('Lengkapi username & password.', 'error'); return; }
+
+      const res = await apiCall('loginProctor', { username, password });
+      if (!res.success) { showToast(res.error || 'Login gagal', 'error'); return; }
+
+      state.user = res.user;
+      saveSession({ user: res.user, loginAt: Date.now() });
+      document.getElementById('user-nama').textContent = res.user.nama;
+      document.getElementById('user-ruangan').textContent = `${res.user.ruangan} • ${res.user.sesi}`;
+      document.getElementById('reset-ruangan-name').textContent = res.user.ruangan;
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-dashboard').classList.remove('hidden');
+      showToast('Selamat datang, ' + res.user.nama, 'success');
+      loadSiswa();
+      startPolling();
+    });
+
+    function logout() {
+      if (state.pollingInterval) clearInterval(state.pollingInterval);
+      clearSession();
+      state.user = null;
+      document.getElementById('screen-dashboard').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+      document.getElementById('login-form').reset();
+    }
+
+    /* ============================================================
+       LOAD SISWA & RENDER
+       ============================================================ */
+    async function loadSiswa() {
+      const res = await apiCall('getSiswaByProctor', { proctor_username: state.user.username, ruangan: state.user.ruangan });
+      if (res.success) {
+        state.siswa = res.siswa;
+        state.violations = state.siswa.map(s => s.pelanggaran_terakhir).filter(Boolean);
+        renderSiswaTable();
+        renderStats();
+        renderViolations();
+        renderBroadcastHistory();
+        populateTargetSelect();
+      }
+    }
+
+    function renderStats() {
+      const s = state.siswa;
+      document.getElementById('stat-total').textContent = s.length;
+      document.getElementById('stat-sedang').textContent = s.filter(x => x.status_ujian === 'sedang_mengerjakan').length;
+      document.getElementById('stat-selesai').textContent = s.filter(x => x.status_ujian === 'selesai').length;
+      document.getElementById('stat-terkunci').textContent = s.filter(x => x.status_ujian === 'terkunci').length;
+      document.getElementById('stat-belum').textContent = s.filter(x => x.status_ujian === 'belum_mulai').length;
+    }
+
+    function statusClass(status) {
+      const map = {
+        'belum_mulai': 'status-belum', 'belum_login': 'status-belum',
+        'sedang_mengerjakan': 'status-sedang', 'sedang_login': 'status-sedang',
+        'selesai': 'status-selesai', 'terkunci': 'status-terkunci',
+        'terkeluar': 'status-terkeluar'
+      };
+      return map[status] || 'status-belum';
+    }
+    function statusLabel(status) {
+      const map = {
+        'belum_mulai': 'Belum Mulai', 'belum_login': 'Belum Login',
+        'sedang_mengerjakan': 'Mengerjakan', 'sedang_login': 'Online',
+        'selesai': 'Selesai', 'terkunci': 'Terkunci',
+        'terkeluar': 'Terkeluar'
+      };
+      return map[status] || status;
+    }
+
+    function renderSiswaTable() {
+      const tbody = document.getElementById('siswa-tbody');
+      const search = (document.getElementById('search-siswa').value || '').toLowerCase();
+      const filtered = state.siswa.filter(s =>
+        s.username.toLowerCase().includes(search) ||
+        (s.nama_lengkap || '').toLowerCase().includes(search)
+      );
+      tbody.innerHTML = filtered.map(s => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+          <td class="py-2 px-3 font-mono text-slate-700">${s.username}</td>
+          <td class="py-2 px-3 font-semibold text-slate-900">${s.nama_lengkap || '-'}</td>
+          <td class="py-2 px-3 text-slate-600">${s.kelas || '-'}</td>
+          <td class="py-2 px-3"><span class="status-pill ${statusClass(s.status_ujian)}">${statusLabel(s.status_ujian)}</span></td>
+          <td class="py-2 px-3 text-xs text-slate-500 font-mono">${s.waktu_mulai || '-'}</td>
+          <td class="py-2 px-3">
+            <div class="flex gap-1">
+              ${s.status_ujian === 'terkunci' ? `<button onclick="openUnlock('${s.username}','${s.nama_lengkap}','${(s.pelanggaran_terakhir?.jenis_pelanggaran || 'pelanggaran')}')" class="px-2 py-1 rounded bg-lime-100 text-lime-700 text-xs font-bold hover:bg-lime-200">Buka Kunci</button>` : ''}
+              <button onclick="resetOne('${s.username}')" class="px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold hover:bg-amber-200">Reset</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderViolations() {
+      const container = document.getElementById('violation-log');
+      if (!state.violations.length) {
+        container.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">Belum ada pelanggaran.</p>';
+        return;
+      }
+      container.innerHTML = state.violations.map(v => `
+        <div class="p-3 rounded-lg ${v.status_blokir === 'terkunci' ? 'bg-red-50 border-l-2 border-red-500' : 'bg-slate-50 border-l-2 border-slate-300'}">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="font-semibold text-slate-900 text-sm">${v.nama_lengkap || v.username}</div>
+              <div class="text-xs text-slate-500">${v.jenis_pelanggaran.replace(/_/g, ' ')} • ${v.deskripsi}</div>
+            </div>
+            <span class="text-xs text-slate-400">${v.timestamp}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function populateTargetSelect() {
+      const sel = document.getElementById('bc-target');
+      const current = sel.value;
+      sel.innerHTML = '<option value="ALL">Semua Siswa di Ruangan</option>';
+      state.siswa.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.username;
+        opt.textContent = `${s.username} - ${s.nama_lengkap}`;
+        sel.appendChild(opt);
+      });
+      sel.value = current;
+    }
+
+    /* ============================================================
+       UNBLOCK / UNLOCK
+       ============================================================ */
+    function openUnlock(username, nama, violation) {
+      state.currentUnlockUsername = username;
+      document.getElementById('ul-username').textContent = username;
+      document.getElementById('ul-nama').textContent = nama;
+      document.getElementById('ul-violation').textContent = violation;
+      document.getElementById('modal-unlock').classList.remove('hidden');
+    }
+    function closeUnlock() { document.getElementById('modal-unlock').classList.add('hidden'); state.currentUnlockUsername = null; }
+    async function confirmUnlock() {
+      if (!state.currentUnlockUsername) return;
+      const res = await apiCall('unblockSiswa', { username: state.currentUnlockUsername });
+      if (res.success) {
+        showToast('Siswa berhasil dibuka kuncinya.', 'success');
+        closeUnlock();
+        loadSiswa();
+      } else { showToast(res.error || 'Gagal membuka kunci', 'error'); }
+    }
+
+    /* ============================================================
+       RESET LOGIN
+       ============================================================ */
+    async function resetOne(username) {
+      const ok = await showConfirm(`Reset login siswa <strong>${username}</strong>? Siswa akan dipaksa logout dari perangkatnya.`, {
+        title: 'Reset Login Siswa?',
+        confirmText: 'Ya, Reset Sekarang',
+        cancelText: 'Batal',
+        type: 'warning',
+        danger: true
+      });
+      if (!ok) return;
+      const res = await apiCall('resetLoginSiswa', { username });
+      if (res.success) { showToast('Login siswa berhasil direset.', 'success'); loadSiswa(); }
+      else showToast(res.error || 'Gagal reset', 'error');
+    }
+    async function resetLoginSiswa() {
+      const username = document.getElementById('reset-username').value.trim();
+      if (!username) { showToast('Masukkan username siswa.', 'error'); return; }
+      await resetOne(username);
+      document.getElementById('reset-username').value = '';
+    }
+    async function resetLoginMassal() {
+      const ok = await showConfirm(`<strong>PERINGATAN:</strong> Reset massal seluruh siswa di <strong>${state.user.ruangan}</strong>?<br><br>Semua siswa akan dipaksa logout dari perangkat masing-masing dan harus login kembali.`, {
+        title: '⚠️ Reset Massal - Bahaya!',
+        confirmText: 'Ya, Reset Semua',
+        cancelText: 'Batal',
+        type: 'error',
+        danger: true
+      });
+      if (!ok) return;
+      const res = await apiCall('resetLoginMassal', { ruangan: state.user.ruangan });
+      if (res.success) { showToast(`Berhasil mereset ${res.reset_count} siswa.`, 'success'); loadSiswa(); }
+      else showToast(res.error || 'Gagal reset massal', 'error');
+    }
+
+    /* ============================================================
+       GENERATE TOKEN
+       ============================================================ */
+    // Toggle custom/auto di proktor
+    document.addEventListener('DOMContentLoaded', function() {
+      const auto = document.getElementById('ptoken-mode-auto');
+      const custom = document.getElementById('ptoken-mode-custom');
+      if (auto) auto.addEventListener('change', function() {
+        document.getElementById('ptoken-custom-section').classList.add('hidden');
+        document.getElementById('ptoken-auto-section').classList.remove('hidden');
+      });
+      if (custom) custom.addEventListener('change', function() {
+        document.getElementById('ptoken-custom-section').classList.remove('hidden');
+        document.getElementById('ptoken-auto-section').classList.add('hidden');
+      });
+    });
+
+    function genRandomTokenProctor(prefix) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let s = '';
+      for (let i = 0; i < 4; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+      return (prefix || 'TKN') + '-' + s + '-' + new Date().getFullYear();
+    }
+
+    async function generateToken() {
+      const username = document.getElementById('token-username').value.trim();
+      if (!username) { showToast('Masukkan username siswa.', 'error'); return; }
+      
+      const mode = document.querySelector('input[name="ptoken-mode"]:checked')?.value || 'auto';
+      const customToken = document.getElementById('ptoken-custom-value')?.value || '';
+      const prefix = document.getElementById('ptoken-prefix')?.value || 'TKN';
+      
+      if (mode === 'custom' && !customToken) {
+        showToast('Isi token custom dulu.', 'error'); return;
+      }
+      
+      const token = mode === 'custom' ? customToken : genRandomTokenProctor(prefix);
+      const res = await apiCall('generateTokenSiswa', { username: username, token: token });
+      if (res.success) {
+        document.getElementById('token-display').textContent = res.token || token;
+        document.getElementById('token-result').classList.remove('hidden');
+        showToast('Token baru berhasil dibuat!', 'success');
+      } else showToast(res.error || 'Gagal generate token', 'error');
+    }
+    function copyToken() {
+      const t = document.getElementById('token-display').textContent;
+      navigator.clipboard.writeText(t).then(() => showToast('Token disalin ke clipboard.', 'success'));
+    }
+
+    /* ============================================================
+       BROADCAST
+       ============================================================ */
+    function setQuickMsg(msg) { document.getElementById('bc-pesan').value = msg; }
+    async function kirimBroadcast() {
+      const target = document.getElementById('bc-target').value;
+      const tipe = document.getElementById('bc-tipe').value;
+      const pesan = document.getElementById('bc-pesan').value.trim();
+      if (!pesan) { showToast('Isi pesan tidak boleh kosong.', 'error'); return; }
+      const res = await apiCall('kirimBroadcast', {
+        proctor_username: state.user.username, ruangan: state.user.ruangan,
+        target, tipe, pesan
+      });
+      if (res.success) {
+        showToast('Pesan broadcast terkirim!', 'success');
+        document.getElementById('bc-pesan').value = '';
+        renderBroadcastHistory();
+      } else showToast(res.error || 'Gagal kirim broadcast', 'error');
+    }
+    function renderBroadcastHistory() {
+      const c = document.getElementById('broadcast-history');
+      if (!state.broadcasts.length) { c.innerHTML = '<p class="text-slate-400 text-sm text-center py-4">Belum ada broadcast.</p>'; return; }
+      c.innerHTML = state.broadcasts.map(b => `
+        <div class="p-3 rounded-lg bg-blue-50 border-l-2 border-royal-blue">
+          <div class="flex justify-between">
+            <div class="text-xs font-semibold text-royal-blue uppercase">${b.tipe_broadcast}</div>
+            <div class="text-xs text-slate-400">${new Date(b.timestamp).toLocaleString('id-ID')}</div>
+          </div>
+          <div class="text-slate-700 mt-1">${b.isi_pesan}</div>
+          <div class="text-xs text-slate-400 mt-1">Target: ${b.target_username === 'ALL' ? 'Semua' : b.target_username}</div>
+        </div>
+      `).join('');
+    }
+
+    /* ============================================================
+       BERITA ACARA
+       ============================================================ */
+    async function simpanBeritaAcara() {
+      const data = {
+        proctor_username: state.user.username,
+        ruangan: state.user.ruangan,
+        isi_berita: JSON.stringify({
+          tanggal: document.getElementById('ba-tanggal').value,
+          waktu: document.getElementById('ba-waktu').value,
+          mapel: document.getElementById('ba-mapel').value,
+          kelas: document.getElementById('ba-kelas').value,
+          hadir: document.getElementById('ba-hadir').value,
+          tidak_hadir: document.getElementById('ba-tidakhadir').value,
+          catatan: document.getElementById('ba-catatan').value
+        })
+      };
+      const res = await apiCall('simpanBeritaAcara', data);
+      if (res.success) showToast('Berita acara tersimpan.', 'success');
+      else showToast(res.error || 'Gagal simpan', 'error');
+    }
+
+    /* ============================================================
+       KOP CONFIG (persisten di localStorage — sama seperti admin)
+       ============================================================ */
+    const KOP_DEFAULTS = {
+      namaSekolah: 'SMA Negeri 1 Contoh',
+      npsn: '20100123',
+      kabupaten: 'Moga',
+      provinsi: 'Jawa Tengah',
+      hari: 'Senin',
+      tanggalUjian: '15 Oktober 2025',
+      pukul: '08:00 - 09:30',
+      alokasi: '90 menit',
+      mode: 'Online',
+      namaKepsek: 'Drs. Budi, M.Pd.',
+      nipKepsek: '19650101 199001 1 001',
+      namaProktor: 'Budi Santoso, S.Pd.',
+      nipProktor: '19800101 200501 1 001',
+      namaPengawas: 'Siti Aminah, S.Pd.',
+      nipPengawas: '19850101 200801 2 002'
+    };
+    const KOP_STORAGE_KEY = 'cbt_kop_config';
+
+    function loadKopConfig() {
+      let cfg = KOP_DEFAULTS;
+      try {
+        const saved = JSON.parse(localStorage.getItem(KOP_STORAGE_KEY) || 'null');
+        if (saved) cfg = Object.assign(KOP_DEFAULTS, saved);
+      } catch (e) {}
+      const map = {
+        'kop-nama-sekolah': cfg.namaSekolah, 'kop-npsn': cfg.npsn,
+        'kop-kabupaten': cfg.kabupaten, 'kop-provinsi': cfg.provinsi,
+        'kop-hari': cfg.hari, 'kop-tanggal-ujian': cfg.tanggalUjian,
+        'kop-pukul': cfg.pukul, 'kop-alokasi': cfg.alokasi, 'kop-mode': cfg.mode,
+        'kop-nama-kepsek': cfg.namaKepsek, 'kop-nip-kepsek': cfg.nipKepsek,
+        'kop-nama-proktor': cfg.namaProktor, 'kop-nip-proktor': cfg.nipProktor,
+        'kop-nama-pengawas': cfg.namaPengawas, 'kop-nip-pengawas': cfg.nipPengawas
+      };
+      for (const id in map) {
+        const el = document.getElementById(id);
+        if (el) el.value = map[id] || '';
+      }
+      return cfg;
+    }
+
+    function simpanKopConfig() {
+      const cfg = {
+        namaSekolah: document.getElementById('kop-nama-sekolah').value.trim(),
+        npsn: document.getElementById('kop-npsn').value.trim(),
+        kabupaten: document.getElementById('kop-kabupaten').value.trim(),
+        provinsi: document.getElementById('kop-provinsi').value.trim(),
+        hari: document.getElementById('kop-hari').value.trim(),
+        tanggalUjian: document.getElementById('kop-tanggal-ujian').value.trim(),
+        pukul: document.getElementById('kop-pukul').value.trim(),
+        alokasi: document.getElementById('kop-alokasi').value.trim(),
+        mode: document.getElementById('kop-mode').value.trim() || 'Online',
+        namaKepsek: document.getElementById('kop-nama-kepsek').value.trim(),
+        nipKepsek: document.getElementById('kop-nip-kepsek').value.trim(),
+        namaProktor: document.getElementById('kop-nama-proktor').value.trim(),
+        nipProktor: document.getElementById('kop-nip-proktor').value.trim(),
+        namaPengawas: document.getElementById('kop-nama-pengawas').value.trim(),
+        nipPengawas: document.getElementById('kop-nip-pengawas').value.trim()
+      };
+      localStorage.setItem(KOP_STORAGE_KEY, JSON.stringify(cfg));
+      showToast('Konfigurasi kop & penandatangan tersimpan!', 'success');
+    }
+
+    async function resetKopConfig() {
+      const ok = await showConfirm('Reset semua field konfigurasi kop & TTD ke nilai default?', {
+        title: 'Reset Konfigurasi?', confirmText: 'Ya, Reset', type: 'warning'
+      });
+      if (!ok) return;
+      localStorage.removeItem(KOP_STORAGE_KEY);
+      loadKopConfig();
+      showToast('Konfigurasi direset ke default.', 'info');
+    }
+
+    function getKopConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KOP_STORAGE_KEY) || 'null');
+        if (saved) return Object.assign(KOP_DEFAULTS, saved);
+      } catch (e) {}
+      return KOP_DEFAULTS;
+    }
+
+    function cetakBeritaAcara() {
+      const nama = state.user?.nama || '';
+      const ruangan = state.user?.ruangan || '';
+      const tanggal = document.getElementById('ba-tanggal').value;
+      const waktu = document.getElementById('ba-waktu').value;
+      const mapel = document.getElementById('ba-mapel').value;
+      const kelas = document.getElementById('ba-kelas').value;
+      const hadir = document.getElementById('ba-hadir').value;
+      const tidakhadir = document.getElementById('ba-tidakhadir').value;
+      const catatan = document.getElementById('ba-catatan').value;
+      const kop = getKopConfig();
+
+      const html = `
+        <html><head><title>Berita Acara - ${ruangan}</title>
+        <style>
+          @page { margin: 1.5cm; }
+          body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.5; padding: 10px; }
+          .kop-atas { display: flex; align-items: center; gap: 18px; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 8px; }
+          .kop-logo { width: 80px; height: 80px; flex-shrink: 0; }
+          .kop-teks { flex: 1; text-align: center; }
+          .kop-teks h1 { font-size: 16px; font-weight: bold; text-transform: uppercase; margin: 0; letter-spacing: 0.5px; }
+          .kop-teks h2 { font-size: 20px; font-weight: bold; text-transform: uppercase; margin: 2px 0; letter-spacing: 0.5px; }
+          .kop-teks .alamat { font-size: 11px; margin-top: 2px; }
+          .kop-teks .npsn-line { font-size: 11px; margin-top: 1px; }
+          .judul-berkas { text-align: center; margin: 18px 0 10px; }
+          .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; letter-spacing: 0.5px; }
+          .meta { margin: 15px 0; text-align: justify; }
+          .meta p { margin: 4px 0; }
+          table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+          th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
+          th { background: #e2e8f0; font-weight: bold; text-align: center; }
+          .catatan { margin-top: 20px; }
+          .catatan-box { border: 1px solid #000; padding: 10px; min-height: 60px; font-size: 12px; line-height: 1.6; }
+          .ttd-section { margin-top: 50px; }
+          .ttd-row { display: flex; justify-content: space-between; }
+          .ttd-box { width: 32%; text-align: center; font-size: 12px; }
+          .ttd-box .jabatan { margin-bottom: 60px; }
+          .ttd-box .nama { font-weight: bold; text-decoration: underline; }
+          .ttd-box .nip { margin-top: 2px; }
+          .ttd-kepsek-center { width: 33%; margin: 30px auto 0; text-align: center; font-size: 12px; }
+          .ttd-kepsek-center .jabatan { margin-bottom: 60px; }
+          .ttd-kepsek-center .nama { font-weight: bold; text-decoration: underline; }
+          .ttd-kepsek-center .nip { margin-top: 2px; }
+          .footer-cbt { text-align: center; font-size: 9px; color: #64748b; margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+        </style></head><body>
+
+          <!-- KOP ATAS -->
+          <div class="kop-atas">
+            <img src="${CONFIG.LOGO}" class="kop-logo" alt="Logo" />
+            <div class="kop-teks">
+              <h1>Pemerintah Kabupaten ${kop.kabupaten}</h1>
+              <h1>Dinas Pendidikan</h1>
+              <h2>${kop.namaSekolah}</h2>
+              <div class="alamat">Alamat: Jl. Pendidikan No. 1, Kec. ${kop.kabupaten}, Kab. ${kop.kabupaten}, Prov. ${kop.provinsi}</div>
+              <div class="npsn-line">NPSN: ${kop.npsn} • Telp. (0281) 123456 • Email: ${kop.namaSekolah.toLowerCase().replace(/\s/g,'')}@sch.id</div>
+            </div>
+          </div>
+
+          <!-- JUDUL -->
+          <div class="judul-berkas">
+            <h3>BERITA ACARA PELAKSANAAN UJIAN</h3>
+            <div style="font-size: 11px; margin-top: 2px;">Mode Pelaksanaan: ${kop.mode}</div>
+          </div>
+
+          <!-- ISI BERITA ACARA -->
+          <div class="meta">
+            <p>Pada hari ini <strong>${tanggal || kop.hari + ', ' + kop.tanggalUjian}</strong>, pukul <strong>${waktu || kop.pukul}</strong> WIB, telah dilaksanakan ujian dengan rincian sebagai berikut:</p>
+            <p>&nbsp;&nbsp;&nbsp;Nama Sekolah : <strong>${kop.namaSekolah}</strong></p>
+            <p>&nbsp;&nbsp;&nbsp;NPSN : <strong>${kop.npsn}</strong></p>
+            <p>&nbsp;&nbsp;&nbsp;Mata Pelajaran : <strong>${mapel || '-'}</strong></p>
+            <p>&nbsp;&nbsp;&nbsp;Kelas : <strong>${kelas || '-'}</strong></p>
+            <p>&nbsp;&nbsp;&nbsp;Ruangan : <strong>${ruangan || '-'}</strong></p>
+            <p>&nbsp;&nbsp;&nbsp;Mode Pelaksanaan : <strong>${kop.mode}</strong></p>
+            <p>&nbsp;&nbsp;&nbsp;Pengawas : <strong>${nama || kop.namaProktor}</strong></p>
+          </div>
+
+          <!-- TABEL HADIR -->
+          <table>
+            <thead>
+              <tr>
+                <th>Jumlah Peserta Hadir</th>
+                <th>Jumlah Tidak Hadir</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align:center; font-size: 14px; font-weight: bold;">${hadir || '-'}</td>
+                <td style="text-align:center; font-size: 14px; font-weight: bold;">${tidakhadir || '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- CATATAN PENGAWAS -->
+          <div class="catatan">
+            <strong>Catatan Pengawas:</strong>
+            <div class="catatan-box">${catatan || '-'}</div>
+          </div>
+
+          <!-- TANDA TANGAN -->
+          <div class="ttd-section">
+            <div class="ttd-row">
+              <div class="ttd-box">
+                <div class="jabatan">Proktor,<br />&nbsp;</div>
+                <div class="nama">${kop.namaProktor || nama || '(...........................)'}</div>
+                <div class="nip">NIP. ${kop.nipProktor || '...........................'}</div>
+              </div>
+              <div class="ttd-box">
+                <div class="jabatan">Pengawas,<br />&nbsp;</div>
+                <div class="nama">${kop.namaPengawas || '(...........................)'}</div>
+                <div class="nip">NIP. ${kop.nipPengawas || '...........................'}</div>
+              </div>
+            </div>
+            <div class="ttd-kepsek-center">
+              <div class="jabatan">Mengetahui,<br />Kepala Sekolah</div>
+              <div class="nama">${kop.namaKepsek || '(...........................)'}</div>
+              <div class="nip">NIP. ${kop.nipKepsek || '...........................'}</div>
+            </div>
+          </div>
+
+          <div class="footer-cbt">SCBT Integrated System • v1.1 | Developed by MB • yanuar.b@gmail.com</div>
+        </body></html>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
+    }
+
+
+    /* ============================================================
+       PENGATURAN SOAL — Proctor override admin default
+       ============================================================ */
+    let currentSoalMode = null;
+
+    async function loadProctorSoalMode() {
+      try {
+        // Load default admin
+        const defaultRes = await apiCall('getSoalMode', {});
+        if (defaultRes.success) {
+          const detail = document.getElementById('soal-default-detail');
+          if (detail) {
+            if (defaultRes.mode === 'gform') {
+              detail.innerHTML = '<strong>Google Form</strong> — URL: ' + (defaultRes.gform_url || '(belum diisi)');
+            } else {
+              detail.innerHTML = '<strong>Sistem CBT SEVIA</strong> — Soal ID: ' + (defaultRes.soal_id || '(belum dipilih)');
+            }
+          }
+        }
+        
+        // Load proctor override
+        const res = await apiCall('getSoalMode', { ruangan: state.user?.ruangan || '' });
+        if (res.success) {
+          currentSoalMode = res;
+          if (res.mode === 'gform') {
+            document.getElementById('proktor-mode-gform').checked = true;
+            document.getElementById('proktor-gform-url').value = res.gform_url || '';
+            showProktorGform();
+          } else {
+            document.getElementById('proktor-mode-cbt').checked = true;
+            if (res.soal_id) await loadProktorSoalOptions(res.soal_id);
+            showProktorCbt();
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal load soal mode:', e);
+      }
+    }
+
+    async function loadProktorSoalOptions(selectedId) {
+      try {
+        const res = await apiCall('getAllSoal', {});
+        if (res.success && res.soal) {
+          const sel = document.getElementById('proktor-soal-id-select');
+          sel.innerHTML = '<option value="">— Pilih Paket Soal —</option>';
+          res.soal.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            var label = s.nama_paket || (s.mata_pelajaran + ' • ' + (s.tipe || 'pg'));
+            opt.textContent = label + ' (' + (s.jumlah_soal || '?') + ' soal)';
+            if (s.id === selectedId) opt.selected = true;
+            sel.appendChild(opt);
+          });
+        }
+      } catch (e) { console.warn('Gagal load soal options:', e); }
+    }
+
+    function showProktorCbt() {
+      document.getElementById('proktor-cbt-section')?.classList.remove('hidden');
+      document.getElementById('proktor-gform-section')?.classList.add('hidden');
+    }
+    function showProktorGform() {
+      document.getElementById('proktor-cbt-section')?.classList.add('hidden');
+      document.getElementById('proktor-gform-section')?.classList.remove('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const cbt = document.getElementById('proktor-mode-cbt');
+      const gform = document.getElementById('proktor-mode-gform');
+      if (cbt) cbt.addEventListener('change', showProktorCbt);
+      if (gform) gform.addEventListener('change', showProktorGform);
+    });
+
+    async function saveSoalModeProctor() {
+      const mode = document.querySelector('input[name="proktor-soal-mode"]:checked')?.value || 'cbt';
+      const soalId = mode === 'cbt' ? (document.getElementById('proktor-soal-id-select')?.value || '') : '';
+      const gformUrl = mode === 'gform' ? (document.getElementById('proktor-gform-url')?.value || '') : '';
+      
+      const res = await apiCall('saveSoalMode', {
+        ruangan: state.user?.ruangan || '',
+        proctor_username: state.user?.username || '',
+        mode: mode, soal_id: soalId, gform_url: gformUrl
+      });
+      if (res.success) {
+        showToast('Pengaturan soal tersimpan untuk ruangan Anda!', 'success');
+      } else {
+        showToast(res.error || 'Gagal simpan', 'error');
+      }
+    }
+
+    async function resetSoalModeProctor() {
+      const ok = await showConfirm('Reset ke default admin? Pengaturan ruangan Anda akan dihapus.', {
+        title: 'Reset?', confirmText: 'Ya, Reset', type: 'warning'
+      });
+      if (!ok) return;
+      
+      const res = await apiCall('saveSoalMode', {
+        ruangan: state.user?.ruangan || '',
+        proctor_username: state.user?.username || '',
+        mode: '', soal_id: '', gform_url: ''
+      });
+      if (res.success) {
+        showToast('Direset ke default admin. Memuat ulang...', 'info');
+        setTimeout(() => loadProctorSoalMode(), 1000);
+      }
+    }
+
+    /* ============================================================
+       POLLING (auto refresh every 15s)
+       ============================================================ */
+    function startPolling() {
+      if (state.pollingInterval) clearInterval(state.pollingInterval);
+      state.pollingInterval = setInterval(loadSiswa, 15000);
+    }
+
+    /* ============================================================
+       INIT - Restore session
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = loadSession();
+      if (saved && saved.user) {
+        state.user = saved.user;
+        document.getElementById('user-nama').textContent = saved.user.nama;
+        document.getElementById('user-ruangan').textContent = `${saved.user.ruangan} • ${saved.user.sesi}`;
+        document.getElementById('reset-ruangan-name').textContent = saved.user.ruangan;
+        document.getElementById('screen-login').classList.add('hidden');
+        document.getElementById('screen-dashboard').classList.remove('hidden');
+        loadSiswa();
+        startPolling();
+      }
+    });
+  
+    /* ============================================================
+       ENTER KEY TRIGGER — Submit form dengan tekan Enter
+       ============================================================ */
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'textarea') {
+        var form = e.target.closest('form');
+        if (form) {
+          e.preventDefault();
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  </script>
+</body>
+</html>
