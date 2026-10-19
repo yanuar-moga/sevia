@@ -2085,10 +2085,10 @@
           /* JUDUL */
           .judul-berkas { text-align: center; margin: 18px 0 10px; }
           .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; letter-spacing: 0.5px; }
-          /* INFO 2 KOLOM */
-          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #000; margin-bottom: 12px; font-size: 12px; }
+          /* INFO 2 KOLOM (tanpa border — hanya label tebal + value) */
+          .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 12px; font-size: 12px; }
           .info-col { padding: 8px 12px; }
-          .info-col.left { border-right: 1px solid #000; }
+          .info-col.left { border-right: none; }
           .info-row { display: flex; margin: 2px 0; }
           .info-row .label { width: 140px; font-weight: bold; }
           .info-row .sep { width: 12px; }
@@ -2314,23 +2314,11 @@
         });
       }
 
-      // Section Proktor
-      if (proktorList.length > 0) {
-        rowsHtml += `<tr><td colspan="5" style="background:#dcfce7;font-weight:bold;text-align:left;padding:6px 8px;">B. PROKTOR</td></tr>`;
-        proktorList.forEach(nama => {
-          rowsHtml += `<tr>
-            <td style="text-align:center">${nomor++}</td>
-            <td>${nama}</td>
-            <td style="text-align:center">Proktor</td>
-            <td style="height:36px"></td>
-            <td style="text-align:center">Hadir</td>
-          </tr>`;
-        });
-      }
+      // Section Proktor dihilangkan (tidak tepat — proktor sudah tercatat di pengawas)
 
-      // Section Pengawas
+      // Section Pengawas (renumber: B, bukan C)
       if (pengawasList.length > 0) {
-        rowsHtml += `<tr><td colspan="5" style="background:#fef3c7;font-weight:bold;text-align:left;padding:6px 8px;">C. PENGAWAS</td></tr>`;
+        rowsHtml += `<tr><td colspan="5" style="background:#fef3c7;font-weight:bold;text-align:left;padding:6px 8px;">B. PENGAWAS</td></tr>`;
         pengawasList.forEach(nama => {
           rowsHtml += `<tr>
             <td style="text-align:center">${nomor++}</td>
@@ -2364,9 +2352,10 @@
         .kop-teks .npsn-line { font-size: 11px; margin-top: 1px; }
         .judul-berkas { text-align: center; margin: 18px 0 10px; }
         .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; letter-spacing: 0.5px; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #000; margin-bottom: 12px; font-size: 12px; }
+        /* INFO 2 KOLOM (tanpa border — hanya label tebal + value) */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 12px; font-size: 12px; }
         .info-col { padding: 8px 12px; }
-        .info-col.left { border-right: 1px solid #000; }
+        .info-col.left { border-right: none; }
         .info-row { display: flex; margin: 2px 0; }
         .info-row .label { width: 140px; font-weight: bold; }
         .info-row .sep { width: 12px; }
@@ -2375,15 +2364,16 @@
         th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
         th { background: #e2e8f0; font-weight: bold; text-align: center; }
         .ttd-section { margin-top: 40px; }
-        .ttd-row { display: flex; justify-content: space-between; }
-        .ttd-box { width: 32%; text-align: center; font-size: 12px; }
-        .ttd-box .jabatan { margin-bottom: 60px; }
-        .ttd-box .nama { font-weight: bold; text-decoration: underline; }
-        .ttd-box .nip { margin-top: 2px; }
-        .ttd-kepsek-center { width: 33%; margin: 30px auto 0; text-align: center; font-size: 12px; }
-        .ttd-kepsek-center .jabatan { margin-bottom: 60px; }
-        .ttd-kepsek-center .nama { font-weight: bold; text-decoration: underline; }
-        .ttd-kepsek-center .nip { margin-top: 2px; }
+        /* TTD Kepala Sekolah di kanan, alignment rata kiri */
+        .ttd-kepsek-right {
+          width: 33%;
+          margin: 30px 0 0 auto;  /* auto di kiri = mendorong box ke kanan */
+          text-align: left;
+          font-size: 12px;
+        }
+        .ttd-kepsek-right .jabatan { margin-bottom: 60px; }
+        .ttd-kepsek-right .nama { font-weight: bold; text-decoration: underline; }
+        .ttd-kepsek-right .nip { margin-top: 2px; }
         .footer-cbt { text-align: center; font-size: 9px; color: #64748b; margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 6px; }
       </style></head><body>
 
@@ -2439,9 +2429,9 @@
           <tbody>${rowsHtml}</tbody>
         </table>
 
-        <!-- TANDA TANGAN (hanya Kepala Sekolah di tengah bawah) -->
+        <!-- TANDA TANGAN (Kepala Sekolah di kanan, alignment rata kiri) -->
         <div class="ttd-section">
-          <div class="ttd-kepsek-center">
+          <div class="ttd-kepsek-right">
             <div class="jabatan">Mengetahui,<br />Kepala Sekolah</div>
             <div class="nama">${kop.namaKepsek || '(...........................)'}</div>
             <div class="nip">NIP. ${kop.nipKepsek || '...........................'}</div>
