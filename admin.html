@@ -1541,6 +1541,7 @@
               <tr><td class="lbl">Password</td><td class="sep">:</td><td class="val mono token">${s.password || '-'}</td></tr>
             </table>
           </div>
+          <div class="kartu-footer">SEVIA V1.1 by MB</div>
         </div>
       `;
     }
@@ -1632,6 +1633,16 @@
             color: #1e3a8a;
             font-size: 11pt;
             letter-spacing: 0.5px;
+          }
+          .kartu-footer {
+            background: #f1f5f9;
+            padding: 1.5mm 4mm;
+            font-size: 7.5pt;
+            color: #64748b;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            font-style: italic;
+            flex-shrink: 0;
           }
           .page-break { page-break-after: always; break-after: page; }
           @media print {
@@ -2297,38 +2308,43 @@
       }
 
       // Build tabel rows
+      // Urutan jabatan: Proktor, Pengawas, Teknisi
+      // TIDAK ada baris section header (A./B./C.) — cukup isian di kolom Jabatan
       let nomor = 1;
       let rowsHtml = '';
 
-      // Section Teknisi
-      if (teknisiList.length > 0) {
-        rowsHtml += `<tr><td colspan="5" style="background:#dbeafe;font-weight:bold;text-align:left;padding:6px 8px;">A. TEKNISI</td></tr>`;
-        teknisiList.forEach(nama => {
-          rowsHtml += `<tr>
-            <td style="text-align:center">${nomor++}</td>
-            <td>${nama}</td>
-            <td style="text-align:center">Teknisi</td>
-            <td style="height:36px"></td>
-            <td style="text-align:center">Hadir</td>
-          </tr>`;
-        });
-      }
+      // 1. Proktor
+      proktorList.forEach(nama => {
+        rowsHtml += `<tr>
+          <td style="text-align:center">${nomor++}</td>
+          <td>${nama}</td>
+          <td style="text-align:center">Proktor</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">Hadir</td>
+        </tr>`;
+      });
 
-      // Section Proktor dihilangkan (tidak tepat — proktor sudah tercatat di pengawas)
+      // 2. Pengawas
+      pengawasList.forEach(nama => {
+        rowsHtml += `<tr>
+          <td style="text-align:center">${nomor++}</td>
+          <td>${nama}</td>
+          <td style="text-align:center">Pengawas</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">Hadir</td>
+        </tr>`;
+      });
 
-      // Section Pengawas (renumber: B, bukan C)
-      if (pengawasList.length > 0) {
-        rowsHtml += `<tr><td colspan="5" style="background:#fef3c7;font-weight:bold;text-align:left;padding:6px 8px;">B. PENGAWAS</td></tr>`;
-        pengawasList.forEach(nama => {
-          rowsHtml += `<tr>
-            <td style="text-align:center">${nomor++}</td>
-            <td>${nama}</td>
-            <td style="text-align:center">Pengawas</td>
-            <td style="height:36px"></td>
-            <td style="text-align:center">Hadir</td>
-          </tr>`;
-        });
-      }
+      // 3. Teknisi
+      teknisiList.forEach(nama => {
+        rowsHtml += `<tr>
+          <td style="text-align:center">${nomor++}</td>
+          <td>${nama}</td>
+          <td style="text-align:center">Teknisi</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">Hadir</td>
+        </tr>`;
+      });
 
       if (nomor === 1) {
         rowsHtml = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:20px">Tidak ada data panitia</td></tr>';
