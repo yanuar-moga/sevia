@@ -359,6 +359,18 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Reset Login
           </button>
+          <button onclick="navTo('hadir')" data-nav="hadir" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Daftar Hadir Peserta
+          </button>
+          <button onclick="navTo('panitia')" data-nav="panitia" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-2a4 4 0 100-8 4 4 0 000 8z"/></svg>
+            Daftar Hadir Panitia
+          </button>
+          <button onclick="navTo('kartu')" data-nav="kartu" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z M3 10h18 M8 14h5"/></svg>
+            Cetak Kartu Siswa
+          </button>
         </nav>
       </aside>
 
@@ -415,6 +427,36 @@
             <div class="grid sm:grid-cols-3 gap-3 mb-4">
               <input id="token-username" type="text" placeholder="Username siswa" class="input-field px-4 py-2.5 rounded-xl sm:col-span-2" />
               <button onclick="generateToken()" class="btn-neon py-2.5 rounded-xl">Generate Token</button>
+            </div>
+            <!-- Mode: Auto / Custom -->
+            <div class="bg-slate-50 rounded-xl p-4 mb-4">
+              <div class="text-xs font-bold text-slate-700 uppercase mb-2">Mode Token</div>
+              <div class="grid sm:grid-cols-2 gap-3 mb-3">
+                <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition">
+                  <input type="radio" id="ptoken-mode-auto" name="ptoken-mode" value="auto" class="w-4 h-4 accent-lime-500" checked onchange="togglePtokenMode()" />
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm">Otomatis</div>
+                    <div class="text-xs text-slate-500">Generate random token dengan prefix</div>
+                  </div>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 cursor-pointer hover:border-lime-400 transition">
+                  <input type="radio" id="ptoken-mode-custom" name="ptoken-mode" value="custom" class="w-4 h-4 accent-lime-500" onchange="togglePtokenMode()" />
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm">Manual</div>
+                    <div class="text-xs text-slate-500">Isi token sendiri (bebas)</div>
+                  </div>
+                </label>
+              </div>
+              <div id="ptoken-custom-section" class="hidden grid sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label class="block text-xs text-slate-600 mb-1">Token Manual</label>
+                  <input id="ptoken-custom-value" type="text" placeholder="cth: UTS-2025-AB12" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono" />
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-600 mb-1">Prefix (untuk mode otomatis)</label>
+                  <input id="ptoken-prefix" type="text" value="TKN" placeholder="TKN" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono" />
+                </div>
+              </div>
             </div>
             <div id="token-result" class="hidden p-4 rounded-xl bg-lime-50 border border-lime-300">
               <div class="text-xs font-semibold text-lime-700 uppercase mb-1">Token Baru</div>
@@ -640,6 +682,70 @@
             </div>
           </div>
         </div>
+
+        <!-- Tab: Daftar Hadir Peserta -->
+        <div id="tab-hadir" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Daftar Hadir Peserta Ujian</h2><p class="text-slate-500 text-sm">Cetak daftar hadir peserta di ruangan Anda.</p></div>
+          <div class="card p-5">
+            <div class="grid sm:grid-cols-3 gap-3 mb-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Filter Ruangan</label>
+                <input id="proktor-hadir-ruangan" type="text" class="input-field w-full px-3 py-2 rounded-lg text-sm" readonly />
+              </div>
+              <div class="sm:col-span-2 flex items-end gap-2">
+                <label class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <input id="proktor-hadir-susulan" type="checkbox" class="w-4 h-4 accent-amber-500" />
+                  Daftar Hadir Susulan
+                </label>
+                <button onclick="cetakDaftarHadirProctor()" class="btn-neon py-2.5 px-5 rounded-xl text-sm ml-auto">Cetak Daftar Hadir</button>
+              </div>
+            </div>
+            <div id="proktor-hadir-table" class="overflow-x-auto">
+              <p class="text-slate-500 text-sm italic">Klik "Cetak Daftar Hadir" untuk generate PDF.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Daftar Hadir Panitia -->
+        <div id="tab-panitia" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Daftar Hadir Panitia Ujian</h2><p class="text-slate-500 text-sm">Daftar hadir Teknisi, Proktor & Pengawas. Urutan: Proktor → Pengawas → Teknisi.</p></div>
+          <div class="card p-5">
+            <div class="grid lg:grid-cols-3 gap-3 mb-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Daftar Teknisi (satu nama per baris)</label>
+                <textarea id="proktor-panitia-teknisi" rows="6" placeholder="Ahmad Fadli&#10;Budi Santoso" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono resize-none"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Daftar Proktor (auto dari database)</label>
+                <textarea id="proktor-panitia-proktor" rows="6" placeholder="(auto-load)" class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono resize-none bg-slate-50"></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Daftar Pengawas (satu nama per baris)</label>
+                <textarea id="proktor-panitia-pengawas" rows="6" placeholder="Siti Aminah, S.Pd.&#10;Ahmad Hidayat, S.Pd." class="input-field w-full px-3 py-2 rounded-lg text-sm font-mono resize-none"></textarea>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 mb-4">
+              <label class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <input id="proktor-panitia-susulan" type="checkbox" class="w-4 h-4 accent-amber-500" />
+                Daftar Hadir Susulan
+              </label>
+              <button onclick="cetakDaftarHadirPanitiaProctor()" class="btn-neon py-2.5 px-5 rounded-xl text-sm ml-auto">Cetak Daftar Hadir</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Cetak Kartu Siswa -->
+        <div id="tab-kartu" class="hidden space-y-4">
+          <div><h2 class="text-2xl font-extrabold text-slate-900">Cetak Kartu Ujian Siswa</h2><p class="text-slate-500 text-sm">Cetak kartu ujian untuk siswa di ruangan Anda. Format F4 (8 kartu per halaman). Hanya berisi: Nama, Kelas, Ruangan, Username, Password.</p></div>
+          <div class="card p-5">
+            <div class="grid sm:grid-cols-3 gap-3 mb-4">
+              <input id="proktor-kartu-search" type="text" placeholder="Cari username / nama..." oninput="renderKartuListProctor()" class="input-field px-4 py-2.5 rounded-xl sm:col-span-2" />
+              <button onclick="printAllKartuProctor()" class="btn-neon py-2.5 rounded-xl text-sm">Cetak Semua</button>
+            </div>
+            <div id="proktor-kartu-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+          </div>
+        </div>
+
           </main>
     
     <!-- Footer dashboard -->
@@ -879,7 +985,7 @@
     function closeAppInfo() { document.getElementById('modal-info').classList.add('hidden'); }
 
     function navTo(tab) {
-      ['monitoring', 'token', 'broadcast', 'berita', 'soal', 'reset'].forEach(t => {
+      ['monitoring', 'token', 'broadcast', 'berita', 'soal', 'reset', 'hadir', 'panitia', 'kartu'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) el.classList.add('hidden');
         const nav = document.querySelector(`[data-nav="${t}"]`);
@@ -893,6 +999,10 @@
       if (tab === 'berita') loadKopConfig();
       // Auto-load soal saat masuk tab soal
       if (tab === 'soal') loadProctorSoalMode();
+      // Auto-load daftar hadir
+      if (tab === 'hadir') { loadKopConfig(); loadHadirSiswaProctor(); }
+      if (tab === 'panitia') { loadKopConfig(); loadPanitiaDataProctor(); }
+      if (tab === 'kartu') loadKartuSiswaProctor();
     }
 
     /* ============================================================
@@ -1088,19 +1198,17 @@
     /* ============================================================
        GENERATE TOKEN
        ============================================================ */
-    // Toggle custom/auto di proktor
-    document.addEventListener('DOMContentLoaded', function() {
-      const auto = document.getElementById('ptoken-mode-auto');
-      const custom = document.getElementById('ptoken-mode-custom');
-      if (auto) auto.addEventListener('change', function() {
-        document.getElementById('ptoken-custom-section').classList.add('hidden');
-        document.getElementById('ptoken-auto-section').classList.remove('hidden');
-      });
-      if (custom) custom.addEventListener('change', function() {
-        document.getElementById('ptoken-custom-section').classList.remove('hidden');
-        document.getElementById('ptoken-auto-section').classList.add('hidden');
-      });
-    });
+    // Toggle tampilan section berdasarkan mode (auto/custom)
+    function togglePtokenMode() {
+      const mode = document.querySelector('input[name="ptoken-mode"]:checked')?.value || 'auto';
+      const customSection = document.getElementById('ptoken-custom-section');
+      if (!customSection) return;
+      if (mode === 'custom') {
+        customSection.classList.remove('hidden');
+      } else {
+        customSection.classList.add('hidden');
+      }
+    }
 
     function genRandomTokenProctor(prefix) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -1550,6 +1658,472 @@
     function startPolling() {
       if (state.pollingInterval) clearInterval(state.pollingInterval);
       state.pollingInterval = setInterval(loadSiswa, 15000);
+    }
+
+    /* ============================================================
+       DAFTAR HADIR PESERTA — Proctor (filter by ruangan sendiri)
+       ============================================================ */
+    async function loadHadirSiswaProctor() {
+      // Set ruangan otomatis dari user login
+      const ruanganInput = document.getElementById('proktor-hadir-ruangan');
+      if (ruanganInput && state.user?.ruangan) {
+        ruanganInput.value = state.user.ruangan;
+      }
+    }
+
+    async function cetakDaftarHadirProctor() {
+      const kop = getKopConfig();
+      const ruangan = state.user?.ruangan || '';
+      const isSusulan = document.getElementById('proktor-hadir-susulan')?.checked || false;
+      const susulanTitle = isSusulan ? ' SUSULAN' : '';
+
+      if (!ruangan) {
+        showToast('Ruangan proctor tidak terdeteksi. Silakan login ulang.', 'error');
+        return;
+      }
+
+      showToast('Memuat data peserta...', 'info', 1500);
+      const res = await apiCall('getDaftarHadir', { ruangan: ruangan });
+
+      if (!res.success) {
+        showToast('Gagal memuat data: ' + (res.error || 'unknown'), 'error');
+        return;
+      }
+
+      const rows = (res.data || []).map((s, i) => `
+        <tr>
+          <td style="text-align:center">${i + 1}</td>
+          <td style="text-align:center">${s.username || '-'}</td>
+          <td>${s.nama_lengkap || '-'}</td>
+          <td style="text-align:center">${s.kelas || '-'}</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">${s.status_hadir || 'hadir'}</td>
+        </tr>`).join('');
+
+      const firstData = res.data?.[0] || {};
+      const kelasTampil = firstData.kelas || '-';
+      const sesiTampil = firstData.sesi || state.user?.sesi || '-';
+
+      const html = `
+      <html><head><title>Daftar Hadir${susulanTitle} - ${ruangan}</title>
+      <style>
+        @page { margin: 1.5cm; }
+        body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; padding: 10px; }
+        .kop-atas { display: flex; align-items: center; gap: 8px; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 8px; }
+        .kop-logo { width: 80px; height: 80px; flex-shrink: 0; }
+        .kop-teks { flex: 1; text-align: center; }
+        .kop-teks h1 { font-size: 18px; font-weight: bold; text-transform: uppercase; margin: 0; }
+        .kop-teks h2 { font-size: 20px; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
+        .kop-teks .alamat { font-size: 11px; margin-top: 2px; }
+        .kop-teks .npsn-line { font-size: 11px; margin-top: 1px; }
+        .judul-berkas { text-align: center; margin: 18px 0 10px; }
+        .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 12px; font-size: 12px; }
+        .info-col { padding: 8px 12px; }
+        .info-row { display: flex; margin: 2px 0; }
+        .info-row .label { width: 140px; font-weight: bold; }
+        .info-row .sep { width: 12px; }
+        .info-row .value { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
+        th { background: #e2e8f0; font-weight: bold; text-align: center; }
+        .ttd-section { margin-top: 40px; }
+        .ttd-row { display: flex; justify-content: space-between; }
+        .ttd-box { width: 32%; text-align: center; font-size: 12px; }
+        .ttd-box .jabatan { margin-bottom: 60px; }
+        .ttd-box .nama { font-weight: bold; text-decoration: underline; }
+        .ttd-box .nip { margin-top: 2px; }
+        .ttd-kepsek-center { width: 33%; margin: 30px auto 0; text-align: center; font-size: 12px; }
+        .ttd-kepsek-center .jabatan { margin-bottom: 60px; }
+        .ttd-kepsek-center .nama { font-weight: bold; text-decoration: underline; }
+        .ttd-kepsek-center .nip { margin-top: 2px; }
+        .footer-cbt { text-align: center; font-size: 9px; color: #64748b; margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+      </style></head><body>
+        <div class="kop-atas">
+          <img src="${CONFIG.LOGO}" class="kop-logo" alt="Logo" />
+          <div class="kop-teks">
+            <h1>Pemerintah Kabupaten ${kop.kabupaten}</h1>
+            <h1>Dinas Pendidikan</h1>
+            <h2>${kop.namaSekolah}</h2>
+            <div class="alamat">Alamat: Jl. Pendidikan No. 1, Kec. ${kop.kabupaten}, Kab. ${kop.kabupaten}, Prov. ${kop.provinsi}</div>
+            <div class="npsn-line">NPSN: ${kop.npsn} • Telp. (0281) 123456 • Email: ${kop.namaSekolah.toLowerCase().replace(/\s/g,'')}@sch.id</div>
+          </div>
+        </div>
+        <div class="judul-berkas">
+          <h3>DAFTAR HADIR${susulanTitle} PESERTA UJIAN</h3>
+          <div style="font-size: 11px; margin-top: 2px;">${isSusulan ? '<span style="color:#dc2626;font-weight:bold;">Ⓢ Daftar Hadir Susulan</span> • ' : ''}Mode Pelaksanaan: ${kop.mode}</div>
+        </div>
+        <div class="info-grid">
+          <div class="info-col">
+            <div class="info-row"><span class="label">Nama Sekolah</span><span class="sep">:</span><span class="value">${kop.namaSekolah}</span></div>
+            <div class="info-row"><span class="label">Kabupaten</span><span class="sep">:</span><span class="value">${kop.kabupaten}</span></div>
+            <div class="info-row"><span class="label">Provinsi</span><span class="sep">:</span><span class="value">${kop.provinsi}</span></div>
+            <div class="info-row"><span class="label">Sesi</span><span class="sep">:</span><span class="value">${sesiTampil}</span></div>
+            <div class="info-row"><span class="label">Mode Pelaksanaan</span><span class="sep">:</span><span class="value">${kop.mode}</span></div>
+            <div class="info-row"><span class="label">Kelas</span><span class="sep">:</span><span class="value">${kelasTampil}</span></div>
+          </div>
+          <div class="info-col">
+            <div class="info-row"><span class="label">NPSN</span><span class="sep">:</span><span class="value">${kop.npsn}</span></div>
+            <div class="info-row"><span class="label">Ruang</span><span class="sep">:</span><span class="value">${ruangan}</span></div>
+            <div class="info-row"><span class="label">Alokasi Waktu</span><span class="sep">:</span><span class="value">${kop.alokasi}</span></div>
+            <div class="info-row"><span class="label">Pukul</span><span class="sep">:</span><span class="value">${kop.pukul}</span></div>
+            <div class="info-row"><span class="label">Hari</span><span class="sep">:</span><span class="value">${kop.hari}</span></div>
+            <div class="info-row"><span class="label">Tanggal</span><span class="sep">:</span><span class="value">${kop.tanggalUjian}</span></div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:35px">No</th>
+              <th style="width:90px">Username</th>
+              <th>Nama Lengkap</th>
+              <th style="width:70px">Kelas</th>
+              <th style="width:180px">Tanda Tangan</th>
+              <th style="width:80px">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows || '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px">Tidak ada data peserta untuk ruangan ini</td></tr>'}
+          </tbody>
+        </table>
+        <div class="ttd-section">
+          <div class="ttd-row">
+            <div class="ttd-box">
+              <div class="jabatan">Proktor,<br />&nbsp;</div>
+              <div class="nama">${kop.namaProktor || state.user?.nama || '(...........................)'}</div>
+              <div class="nip">NIP. ${kop.nipProktor || '...........................'}</div>
+            </div>
+            <div class="ttd-box">
+              <div class="jabatan">Pengawas,<br />&nbsp;</div>
+              <div class="nama">${kop.namaPengawas || '(...........................)'}</div>
+              <div class="nip">NIP. ${kop.nipPengawas || '...........................'}</div>
+            </div>
+          </div>
+          <div class="ttd-kepsek-center">
+            <div class="jabatan">Mengetahui,<br />Kepala Sekolah</div>
+            <div class="nama">${kop.namaKepsek || '(...........................)'}</div>
+            <div class="nip">NIP. ${kop.nipKepsek || '...........................'}</div>
+          </div>
+        </div>
+        <div class="footer-cbt">SCBT Integrated System • v1.1 | Developed by MB • yanuar.b@gmail.com</div>
+      </body></html>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
+    }
+
+    /* ============================================================
+       DAFTAR HADIR PANITIA — Proctor (tabel tanpa baris section header)
+       ============================================================ */
+    function parseNamaListProctor(text) {
+      if (!text) return [];
+      return text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    }
+
+    async function loadPanitiaDataProctor() {
+      // Auto-load proktor dari database (name dari sheet Proctor)
+      try {
+        const res = await apiCall('crudProctor', { op: 'list' });
+        if (res.success && res.data) {
+          const proktorNames = res.data.map(p => p.nama_lengkap).filter(n => n).join('\n');
+          const el = document.getElementById('proktor-panitia-proktor');
+          if (el && !el.value.trim()) el.value = proktorNames;
+        }
+      } catch (e) {
+        console.warn('Gagal load proktor dari database:', e);
+      }
+    }
+
+    async function cetakDaftarHadirPanitiaProctor() {
+      const kop = getKopConfig();
+      const teknisiList = parseNamaListProctor(document.getElementById('proktor-panitia-teknisi')?.value || '');
+      const proktorList = parseNamaListProctor(document.getElementById('proktor-panitia-proktor')?.value || '');
+      const pengawasList = parseNamaListProctor(document.getElementById('proktor-panitia-pengawas')?.value || '');
+      const isSusulan = document.getElementById('proktor-panitia-susulan')?.checked || false;
+      const susulanTitle = isSusulan ? ' SUSULAN' : '';
+
+      if (teknisiList.length === 0 && proktorList.length === 0 && pengawasList.length === 0) {
+        showToast('Daftar panitia kosong. Isi minimal satu nama.', 'error');
+        return;
+      }
+
+      // Urutan: Proktor → Pengawas → Teknisi (tanpa baris section header)
+      let nomor = 1;
+      let rowsHtml = '';
+      proktorList.forEach(nama => {
+        rowsHtml += `<tr>
+          <td style="text-align:center">${nomor++}</td>
+          <td>${nama}</td>
+          <td style="text-align:center">Proktor</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">Hadir</td>
+        </tr>`;
+      });
+      pengawasList.forEach(nama => {
+        rowsHtml += `<tr>
+          <td style="text-align:center">${nomor++}</td>
+          <td>${nama}</td>
+          <td style="text-align:center">Pengawas</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">Hadir</td>
+        </tr>`;
+      });
+      teknisiList.forEach(nama => {
+        rowsHtml += `<tr>
+          <td style="text-align:center">${nomor++}</td>
+          <td>${nama}</td>
+          <td style="text-align:center">Teknisi</td>
+          <td style="height:36px"></td>
+          <td style="text-align:center">Hadir</td>
+        </tr>`;
+      });
+
+      const totalPanitia = proktorList.length + pengawasList.length + teknisiList.length;
+      const ruangTampil = state.user?.ruangan || 'Semua Ruangan';
+      const sesiTampil = state.user?.sesi || 'Semua Sesi';
+
+      const html = `
+      <html><head><title>Daftar Hadir Panitia${susulanTitle}</title>
+      <style>
+        @page { margin: 1.5cm; }
+        body { font-family: 'Times New Roman', serif; color: #000; line-height: 1.4; padding: 10px; }
+        .kop-atas { display: flex; align-items: center; gap: 8px; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 8px; }
+        .kop-logo { width: 80px; height: 80px; flex-shrink: 0; }
+        .kop-teks { flex: 1; text-align: center; }
+        .kop-teks h1 { font-size: 18px; font-weight: bold; text-transform: uppercase; margin: 0; }
+        .kop-teks h2 { font-size: 20px; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
+        .kop-teks .alamat { font-size: 11px; margin-top: 2px; }
+        .kop-teks .npsn-line { font-size: 11px; margin-top: 1px; }
+        .judul-berkas { text-align: center; margin: 18px 0 10px; }
+        .judul-berkas h3 { font-size: 14px; font-weight: bold; text-transform: uppercase; text-decoration: underline; margin: 0; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 12px; font-size: 12px; }
+        .info-col { padding: 8px 12px; }
+        .info-row { display: flex; margin: 2px 0; }
+        .info-row .label { width: 140px; font-weight: bold; }
+        .info-row .sep { width: 12px; }
+        .info-row .value { flex: 1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
+        th { background: #e2e8f0; font-weight: bold; text-align: center; }
+        .ttd-section { margin-top: 40px; }
+        .ttd-kepsek-right { width: 33%; margin: 30px 0 0 auto; text-align: left; font-size: 12px; }
+        .ttd-kepsek-right .jabatan { margin-bottom: 60px; }
+        .ttd-kepsek-right .nama { font-weight: bold; text-decoration: underline; }
+        .ttd-kepsek-right .nip { margin-top: 2px; }
+        .footer-cbt { text-align: center; font-size: 9px; color: #64748b; margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 6px; }
+      </style></head><body>
+        <div class="kop-atas">
+          <img src="${CONFIG.LOGO}" class="kop-logo" alt="Logo" />
+          <div class="kop-teks">
+            <h1>Pemerintah Kabupaten ${kop.kabupaten}</h1>
+            <h1>Dinas Pendidikan</h1>
+            <h2>${kop.namaSekolah}</h2>
+            <div class="alamat">Alamat: Jl. Pendidikan No. 1, Kec. ${kop.kabupaten}, Kab. ${kop.kabupaten}, Prov. ${kop.provinsi}</div>
+            <div class="npsn-line">NPSN: ${kop.npsn} • Telp. (0281) 123456 • Email: ${kop.namaSekolah.toLowerCase().replace(/\s/g,'')}@sch.id</div>
+          </div>
+        </div>
+        <div class="judul-berkas">
+          <h3>DAFTAR HADIR${susulanTitle} PANITIA UJIAN</h3>
+          <div style="font-size: 11px; margin-top: 2px;">${isSusulan ? '<span style="color:#dc2626;font-weight:bold;">Ⓢ Daftar Hadir Susulan</span> • ' : ''}Teknisi, Proktor & Pengawas • Mode: ${kop.mode} • Total: ${totalPanitia} orang</div>
+        </div>
+        <div class="info-grid">
+          <div class="info-col">
+            <div class="info-row"><span class="label">Nama Sekolah</span><span class="sep">:</span><span class="value">${kop.namaSekolah}</span></div>
+            <div class="info-row"><span class="label">Kabupaten</span><span class="sep">:</span><span class="value">${kop.kabupaten}</span></div>
+            <div class="info-row"><span class="label">Provinsi</span><span class="sep">:</span><span class="value">${kop.provinsi}</span></div>
+            <div class="info-row"><span class="label">Sesi</span><span class="sep">:</span><span class="value">${sesiTampil}</span></div>
+            <div class="info-row"><span class="label">Mode Pelaksanaan</span><span class="sep">:</span><span class="value">${kop.mode}</span></div>
+            <div class="info-row"><span class="label">Total Panitia</span><span class="sep">:</span><span class="value">${totalPanitia} orang</span></div>
+          </div>
+          <div class="info-col">
+            <div class="info-row"><span class="label">NPSN</span><span class="sep">:</span><span class="value">${kop.npsn}</span></div>
+            <div class="info-row"><span class="label">Ruang</span><span class="sep">:</span><span class="value">${ruangTampil}</span></div>
+            <div class="info-row"><span class="label">Alokasi Waktu</span><span class="sep">:</span><span class="value">${kop.alokasi}</span></div>
+            <div class="info-row"><span class="label">Pukul</span><span class="sep">:</span><span class="value">${kop.pukul}</span></div>
+            <div class="info-row"><span class="label">Hari</span><span class="sep">:</span><span class="value">${kop.hari}</span></div>
+            <div class="info-row"><span class="label">Tanggal</span><span class="sep">:</span><span class="value">${kop.tanggalUjian}</span></div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:35px">No</th>
+              <th>Nama Lengkap</th>
+              <th style="width:90px">Jabatan</th>
+              <th style="width:200px">Tanda Tangan</th>
+              <th style="width:70px">Status</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml || '<tr><td colspan="5" style="text-align:center;padding:20px">Tidak ada data panitia</td></tr>'}</tbody>
+        </table>
+        <div class="ttd-section">
+          <div class="ttd-kepsek-right">
+            <div class="jabatan">Mengetahui,<br />Kepala Sekolah</div>
+            <div class="nama">${kop.namaKepsek || '(...........................)'}</div>
+            <div class="nip">NIP. ${kop.nipKepsek || '...........................'}</div>
+          </div>
+        </div>
+        <div class="footer-cbt">SCBT Integrated System • v1.1 | Developed by MB • yanuar.b@gmail.com</div>
+      </body></html>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
+    }
+
+    /* ============================================================
+       CETAK KARTU SISWA — Proctor (untuk siswa di ruangan proctor)
+       Footer: "Smart Examination & Virtual Assessment Ver 1.1"
+       ============================================================ */
+    async function loadKartuSiswaProctor() {
+      if (!state.user?.ruangan) {
+        showToast('Ruangan proctor tidak terdeteksi.', 'error');
+        return;
+      }
+      try {
+        showToast('Memuat data siswa...', 'info', 1500);
+        const res = await apiCall('getSiswaByProctor', { proctor_username: state.user.username, ruangan: state.user.ruangan });
+        if (res.success) {
+          state.siswa = res.siswa;
+          console.log('[DEBUG] Siswa di ruangan:', res.siswa?.length || 0);
+        } else {
+          state.siswa = [];
+          showToast('Gagal load siswa: ' + (res.error || 'unknown'), 'error');
+        }
+      } catch (e) {
+        console.warn('Gagal load siswa:', e);
+        state.siswa = [];
+      }
+      renderKartuListProctor();
+    }
+
+    function renderKartuListProctor() {
+      const search = (document.getElementById('proktor-kartu-search')?.value || '').toLowerCase();
+      const filtered = (state.siswa || []).filter(s =>
+        (s.username || '').toLowerCase().includes(search) ||
+        (s.nama_lengkap || '').toLowerCase().includes(search)
+      );
+      const c = document.getElementById('proktor-kartu-list');
+      if (!c) return;
+      if (filtered.length === 0) {
+        c.innerHTML = '<div class="col-span-full text-center text-slate-400 py-8">Belum ada data siswa di ruangan Anda.</div>';
+        return;
+      }
+      c.innerHTML = filtered.map(s => `
+        <div class="card p-4 fade-in">
+          <div class="flex items-center gap-3 mb-3">
+            <img src="${CONFIG.LOGO}" class="w-10 h-10 rounded-lg" />
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-slate-900 text-sm truncate">${s.nama_lengkap || '-'}</div>
+              <div class="text-xs text-slate-500 font-mono truncate">${s.username || ''} • ${s.kelas || ''}</div>
+            </div>
+          </div>
+          <div class="space-y-1 text-xs text-slate-600 mb-3">
+            <div class="flex justify-between"><span>Kelas</span><span class="font-semibold">${s.kelas || '-'}</span></div>
+            <div class="flex justify-between"><span>Ruangan</span><span class="font-semibold">${s.ruangan || '-'}</span></div>
+            <div class="flex justify-between"><span>Password</span><span class="font-mono font-bold text-royal-blue">${s.password || '-'}</span></div>
+          </div>
+          <button onclick="cetakKartuProctor('${s.username}')" class="btn-neon w-full py-2 rounded-lg text-sm">Cetak Kartu</button>
+        </div>
+      `).join('');
+    }
+
+    // Footer text khusus kartu siswa
+    const KARTU_FOOTER_TEXT = 'Smart Examination & Virtual Assessment Ver 1.1';
+
+    function buildKartuHTMLProctor(s) {
+      return `
+        <div class="kartu-item">
+          <div class="kartu-header">
+            <img src="${CONFIG.LOGO}" class="kartu-logo" alt="Logo" />
+            <div class="kartu-title-group">
+              <div class="kartu-title">KARTU PESERTA UJIAN</div>
+              <div class="kartu-subtitle">SCBT Integrated System</div>
+            </div>
+          </div>
+          <div class="kartu-body">
+            <table class="kartu-table">
+              <tr><td class="lbl">Nama</td><td class="sep">:</td><td class="val">${s.nama_lengkap || '-'}</td></tr>
+              <tr><td class="lbl">Kelas</td><td class="sep">:</td><td class="val">${s.kelas || '-'}</td></tr>
+              <tr><td class="lbl">Ruangan</td><td class="sep">:</td><td class="val">${s.ruangan || '-'}</td></tr>
+              <tr><td class="lbl">Username</td><td class="sep">:</td><td class="val mono">${s.username || '-'}</td></tr>
+              <tr><td class="lbl">Password</td><td class="sep">:</td><td class="val mono token">${s.password || '-'}</td></tr>
+            </table>
+          </div>
+          <div class="kartu-footer">${KARTU_FOOTER_TEXT}</div>
+        </div>
+      `;
+    }
+
+    function buildKartuCSSProctor() {
+      return `
+        <style>
+          @page { size: 215mm 330mm; margin: 8mm; }
+          * { box-sizing: border-box; }
+          body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #000; margin: 0; padding: 0; background: #fff; }
+          .kartu-page { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; width: 100%; }
+          .kartu-item { border: 2px solid #1e3a8a; border-radius: 6px; overflow: hidden; height: 75mm; display: flex; flex-direction: column; page-break-inside: avoid; break-inside: avoid; }
+          .kartu-header { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 3mm 4mm; display: flex; align-items: center; gap: 3mm; flex-shrink: 0; }
+          .kartu-logo { width: 10mm; height: 10mm; background: white; padding: 1mm; border-radius: 2mm; flex-shrink: 0; }
+          .kartu-title-group { flex: 1; }
+          .kartu-title { font-size: 11pt; font-weight: 800; letter-spacing: 0.3px; line-height: 1.1; }
+          .kartu-subtitle { font-size: 8pt; opacity: 0.9; line-height: 1.1; }
+          .kartu-body { flex: 1; padding: 4mm 5mm; display: flex; align-items: center; overflow: hidden; }
+          .kartu-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+          .kartu-table td { padding: 1mm 0; line-height: 1.3; vertical-align: top; }
+          .kartu-table .lbl { font-weight: 600; width: 22mm; white-space: nowrap; }
+          .kartu-table .sep { width: 3mm; }
+          .kartu-table .val { font-weight: 500; word-break: break-word; }
+          .kartu-table .val.mono { font-family: 'Courier New', monospace; font-size: 10pt; }
+          .kartu-table .val.token { font-family: 'Courier New', monospace; font-weight: 700; color: #1e3a8a; font-size: 11pt; letter-spacing: 0.5px; }
+          .kartu-footer { background: #f1f5f9; padding: 1.5mm 4mm; font-size: 7.5pt; color: #64748b; text-align: center; border-top: 1px solid #e2e8f0; font-style: italic; flex-shrink: 0; }
+          .page-break { page-break-after: always; break-after: page; }
+          @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        </style>
+      `;
+    }
+
+    async function cetakKartuProctor(username) {
+      const s = (state.siswa || []).find(x => x.username === username);
+      if (!s) { showToast('Data siswa tidak ditemukan', 'error'); return; }
+      const kartuHTML = Array(8).fill(0).map(() => buildKartuHTMLProctor(s)).join('');
+      const html = `
+        <html><head><title>Kartu Ujian - ${s.nama_lengkap}</title>
+        ${buildKartuCSSProctor()}</head><body>
+          <div class="kartu-page">${kartuHTML}</div>
+        </body></html>`;
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 600);
+    }
+
+    async function printAllKartuProctor() {
+      const siswaList = state.siswa || [];
+      if (siswaList.length === 0) {
+        showToast('Daftar siswa kosong. Pastikan data sudah dimuat.', 'warning');
+        return;
+      }
+      const allKartuHTML = siswaList.map(s => buildKartuHTMLProctor(s));
+      const KARTU_PER_HALAMAN = 8;
+      let pagesHTML = '';
+      for (let i = 0; i < allKartuHTML.length; i += KARTU_PER_HALAMAN) {
+        const chunk = allKartuHTML.slice(i, i + KARTU_PER_HALAMAN);
+        const isLast = (i + KARTU_PER_HALAMAN) >= allKartuHTML.length;
+        pagesHTML += `<div class="kartu-page${isLast ? '' : ' page-break'}">${chunk.join('')}</div>`;
+      }
+      const html = `
+        <html><head><title>Cetak Massal Kartu Ujian (${siswaList.length} siswa)</title>
+        ${buildKartuCSSProctor()}</head><body>
+          ${pagesHTML}
+        </body></html>`;
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => w.print(), 800);
     }
 
     /* ============================================================
