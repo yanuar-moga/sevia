@@ -355,6 +355,10 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             Daftar Soal
           </button>
+          <button onclick="navTo('paket')" data-nav="paket" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+            Paket Tersimpan
+          </button>
           <button onclick="navTo('preview')" data-nav="preview" class="nav-item w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center gap-3">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             Preview Soal
@@ -437,22 +441,38 @@
           </div>
 
           <!-- Action Bar -->
-          <div class="card p-4 flex flex-wrap items-center gap-2">
+          <div class="card p-4 space-y-3">
+            <!-- Status paket aktif -->
+            <div id="paket-status-bar" class="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 hidden">
+              <span class="w-2 h-2 rounded-full bg-lime-500 pulse-dot"></span>
+              <span class="text-slate-600">Sedang mengedit paket:</span>
+              <strong id="paket-status-nama" class="text-slate-900">—</strong>
+              <button onclick="bukaPaketBaru()" class="ml-auto text-xs text-royal-blue hover:underline font-semibold">Buat Paket Baru</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
             <button onclick="addSoal()" class="btn-neon px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
               Tambah Soal
             </button>
             <!-- Input Nama Paket Soal (di luar tombol) -->
-            <div class="mb-3">
+            <div class="mb-3 flex-1 min-w-[200px]">
               <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Paket Soal <span class="text-red-500">*</span></label>
               <input id="nama-paket-soal" type="text" placeholder="cth: Soal UTS Matematika 2025" 
                 class="input-field w-full px-3 py-2 rounded-lg text-sm font-medium"
                 onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();simpanSemua();}" />
-              <p class="text-xs text-slate-400 mt-1">Nama ini akan muncul di Proctor saat memilih soal. Tekan Enter atau klik "Simpan Semua" untuk menyimpan.</p>
+              <p class="text-xs text-slate-400 mt-1">Nama ini akan muncul di Proctor saat memilih soal. Tekan Enter atau klik "Simpan Semua".</p>
             </div>
+            <button onclick="simpanSebagaiDraft()" class="px-4 py-2.5 rounded-lg text-sm font-semibold bg-amber-100 text-amber-700 hover:bg-amber-200 transition flex items-center gap-2" title="Simpan draft lokal tanpa upload ke spreadsheet">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Simpan Draft
+            </button>
             <button onclick="simpanSemua()" class="btn-royal px-4 py-2.5 rounded-lg text-sm flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              Simpan Semua
+              Simpan ke Spreadsheet
+            </button>
+            <button onclick="saveAsNewPaket()" class="px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition flex items-center gap-2" title="Simpan dengan nama paket baru">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+              Save As...
             </button>
             <button onclick="previewSoal()" class="px-4 py-2.5 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -464,6 +484,7 @@
             </button>
             <div class="ml-auto flex items-center gap-2">
               <button onclick="resetAll()" class="px-3 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition">Reset Semua</button>
+            </div>
             </div>
           </div>
 
@@ -484,6 +505,21 @@
             <p class="text-slate-500 text-sm">Ringkasan semua soal yang sudah dibuat.</p>
           </div>
           <div id="daftar-list" class="space-y-3"></div>
+        </div>
+
+        <!-- TAB: PAKET TERSIMPAN -->
+        <div id="tab-paket" class="hidden space-y-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h2 class="text-2xl font-extrabold text-slate-900">Paket Soal Tersimpan</h2>
+              <p class="text-slate-500 text-sm">Daftar paket soal yang sudah pernah Anda simpan. Bisa dilanjutkan kapan saja.</p>
+            </div>
+            <button onclick="simpanSebagaiDraft()" class="btn-neon px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Simpan Paket Saat Ini
+            </button>
+          </div>
+          <div id="paket-list" class="space-y-3"></div>
         </div>
 
         <!-- TAB: PREVIEW -->
@@ -538,7 +574,7 @@
        CONFIG
        ============================================================ */
     const CONFIG = {
-      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwXe2QDk-rxfoPGVa4S9F55UlN_8gd6iOCqg0TtC-ZYP2nrA-hxNDbug9JBOfPHPt0/exec',
+      WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzvTsgX8Gl8xcVjhP8NjYzLONMSZqj__WJ2On0R-rtyZ-EgefcV5zvRbXG7B1VJ6Di6/exec',
       LOGO: 'https://yanuar-moga.github.io/cbt/assets/logo.png',
       APP_NAME: 'SCBT',
       FULL_NAME: 'SCBT Integrated System (SEVIA)',
@@ -763,7 +799,7 @@
     function closeAppInfo() { document.getElementById('modal-info').classList.add('hidden'); }
 
     function navTo(tab) {
-      ['editor', 'daftar', 'preview'].forEach(t => {
+      ['editor', 'daftar', 'paket', 'preview'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) el.classList.add('hidden');
         const nav = document.querySelector(`[data-nav="${t}"]`);
@@ -775,6 +811,7 @@
       if (navEl) navEl.classList.add('active');
       if (tab === 'daftar') renderDaftarList();
       if (tab === 'preview') renderPreview();
+      if (tab === 'paket') renderPaketList();
     }
 
     /* ============================================================
@@ -1392,6 +1429,351 @@
     }
 
     /* ============================================================
+       PAKET TERSIMPAN — Save / Load / Continue / Save As / Delete
+       Simpan ke localStorage dengan key khusus: scbt_paket_list
+       ============================================================ */
+    const PAKET_STORAGE_KEY = 'scbt_paket_list';
+    // Track paket ID yang sedang aktif di editor (null = paket baru)
+    state.currentPaketId = null;
+
+    function loadPaketList() {
+      try {
+        const raw = localStorage.getItem(PAKET_STORAGE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        console.warn('Gagal load paket list:', e);
+        return [];
+      }
+    }
+
+    function savePaketList(list) {
+      try {
+        localStorage.setItem(PAKET_STORAGE_KEY, JSON.stringify(list));
+        return true;
+      } catch (e) {
+        console.error('Gagal save paket list:', e);
+        return false;
+      }
+    }
+
+    function renderPaketList() {
+      const el = document.getElementById('paket-list');
+      if (!el) return;
+      const list = loadPaketList();
+      if (list.length === 0) {
+        el.innerHTML = `
+          <div class="card p-10 text-center text-slate-400">
+            <svg class="w-14 h-14 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+            <div class="text-sm">Belum ada paket soal tersimpan.</div>
+            <div class="text-xs mt-1">Buat soal di tab Editor → klik <strong>Simpan Paket Saat Ini</strong> untuk menyimpan draft.</div>
+          </div>
+        `;
+        return;
+      }
+      // Sort: terbaru di atas
+      list.sort((a, b) => new Date(b.savedAt || 0) - new Date(a.savedAt || 0));
+      el.innerHTML = list.map(p => {
+        const tipeLabel = TIPE_LABEL[p.config?.tipe] || '—';
+        const savedDate = p.savedAt ? new Date(p.savedAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+        const isActive = p.id === state.currentPaketId;
+        return `
+          <div class="card p-5 ${isActive ? 'border-2 border-lime-400' : ''}">
+            <div class="flex items-start justify-between flex-wrap gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                  <span class="font-extrabold text-slate-900 text-base">${escapeHtml(p.nama_paket || '(Tanpa Nama)')}</span>
+                  ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-lime-100 text-lime-700 text-xs font-semibold">SEDANG DIEDIT</span>' : ''}
+                </div>
+                <div class="text-xs text-slate-500 flex flex-wrap gap-x-3 gap-y-1">
+                  <span>${escapeHtml(p.config?.mata_pelajaran || '-')}</span>
+                  <span>•</span>
+                  <span>${tipeLabel}</span>
+                  <span>•</span>
+                  <span>${p.soal?.length || 0} soal</span>
+                  <span>•</span>
+                  <span>${p.config?.waktu || '-'} menit</span>
+                  <span>•</span>
+                  <span>Disimpan: ${savedDate}</span>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="loadPaket('${p.id}')" class="btn-neon px-3 py-1.5 rounded-lg text-xs">Lanjutkan Edit</button>
+                <button onclick="saveAsPaket('${p.id}')" class="btn-royal px-3 py-1.5 rounded-lg text-xs">Save As...</button>
+                <button onclick="deletePaket('${p.id}')" class="px-3 py-1.5 rounded-lg text-xs text-red-600 hover:bg-red-50 font-semibold border border-red-200">Hapus</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /** Simpan paket saat ini (draft) — bisa walau soal belum lengkap */
+    async function simpanSebagaiDraft() {
+      if (state.soal.length === 0) {
+        showToast('Belum ada soal. Tambahkan minimal 1 soal dulu.', 'warning');
+        return;
+      }
+      const namaPaketInput = document.getElementById('nama-paket-soal');
+      let namaPaket = namaPaketInput ? namaPaketInput.value.trim() : '';
+      if (!namaPaket) {
+        // Prompt nama paket via popup
+        namaPaket = await promptNamaPaket('Nama Paket Soal', 'cth: Soal UTS Matematika 2025');
+        if (!namaPaket) return;
+        if (namaPaketInput) namaPaketInput.value = namaPaket;
+      }
+      // Cek apakah nama sudah dipakai oleh paket lain
+      const list = loadPaketList();
+      const existing = list.find(p => p.nama_paket === namaPaket && p.id !== state.currentPaketId);
+      if (existing) {
+        const ok = await showConfirm(`Nama paket <strong>"${escapeHtml(namaPaket)}"</strong> sudah ada.<br><br>Timpa paket yang sudah ada?`, {
+          confirmText: 'Ya, Timpa', danger: true
+        });
+        if (!ok) return;
+        // Hapus yang lama
+        const idx = list.findIndex(p => p.id === existing.id);
+        if (idx >= 0) list.splice(idx, 1);
+      }
+      // Update config snapshot
+      state.soal.forEach(s => {
+        s.mata_pelajaran = state.config.mata_pelajaran;
+        s.tanggal = state.config.tanggal;
+        s.waktu = state.config.waktu;
+        s.jumlah_soal = state.config.jumlah_soal;
+      });
+      // Build paket object
+      const paketId = state.currentPaketId || ('PAKET_' + Date.now());
+      const paket = {
+        id: paketId,
+        nama_paket: namaPaket,
+        config: Object.assign({}, state.config),
+        soal: JSON.parse(JSON.stringify(state.soal)),
+        savedAt: new Date().toISOString(),
+        guru: state.user?.username || 'unknown'
+      };
+      // Hapus entry lama dengan id sama (kalau ada)
+      const idxLama = list.findIndex(p => p.id === paketId);
+      if (idxLama >= 0) list.splice(idxLama, 1);
+      list.push(paket);
+      const ok = savePaketList(list);
+      if (ok) {
+        state.currentPaketId = paketId;
+        saveToStorage(); // simpan state ke localStorage juga
+        showToast(`Paket "${namaPaket}" tersimpan (${state.soal.length} soal).`, 'success');
+        renderPaketList();
+        updatePaketStatusBar();
+      } else {
+        showToast('Gagal menyimpan paket.', 'error');
+      }
+    }
+
+    /** Load paket ke editor untuk dilanjutkan */
+    async function loadPaket(paketId) {
+      const list = loadPaketList();
+      const paket = list.find(p => p.id === paketId);
+      if (!paket) {
+        showToast('Paket tidak ditemukan.', 'error');
+        return;
+      }
+      // Konfirmasi kalau ada soal yang belum disimpan
+      if (state.soal.length > 0 && state.currentPaketId !== paketId) {
+        const ok = await showConfirm(`Muat paket <strong>"${escapeHtml(paket.nama_paket)}"</strong>?<br><br>Soal yang sedang diedit akan diganti dengan isi paket ini. Pastikan sudah disimpan.`, {
+          confirmText: 'Ya, Muat Paket'
+        });
+        if (!ok) return;
+      }
+      // Load config + soal
+      state.config = JSON.parse(JSON.stringify(paket.config));
+      state.soal = JSON.parse(JSON.stringify(paket.soal || []));
+      state.currentPaketId = paket.id;
+      // Update input nama paket
+      const namaPaketInput = document.getElementById('nama-paket-soal');
+      if (namaPaketInput) namaPaketInput.value = paket.nama_paket || '';
+      saveToStorage();
+      syncConfigForm();
+      renderAll();
+      navTo('editor');
+      updatePaketStatusBar();
+      showToast(`Paket "${paket.nama_paket}" dimuat (${state.soal.length} soal). Lanjutkan editing.`, 'success');
+    }
+
+    /** Save As — simpan paket saat ini dengan nama baru */
+    async function saveAsPaket(srcPaketId) {
+      const list = loadPaketList();
+      const src = list.find(p => p.id === srcPaketId);
+      if (!src) {
+        showToast('Paket sumber tidak ditemukan.', 'error');
+        return;
+      }
+      const newNama = await promptNamaPaket('Save As — Nama Paket Baru', src.nama_paket + ' (copy)');
+      if (!newNama) return;
+      // Cek nama duplikat
+      const dup = list.find(p => p.nama_paket === newNama);
+      if (dup) {
+        showToast('Nama paket sudah dipakai. Pilih nama lain.', 'error');
+        return;
+      }
+      const newPaket = {
+        id: 'PAKET_' + Date.now(),
+        nama_paket: newNama,
+        config: JSON.parse(JSON.stringify(src.config)),
+        soal: JSON.parse(JSON.stringify(src.soal || [])),
+        savedAt: new Date().toISOString(),
+        guru: state.user?.username || 'unknown'
+      };
+      list.push(newPaket);
+      savePaketList(list);
+      showToast(`Paket "${newNama}" dibuat (copy dari "${src.nama_paket}").`, 'success');
+      // Tanya apakah mau langsung load paket baru ini
+      const ok = await showConfirm(`Paket baru "${newNama}" dibuat.<br><br>Buka paket baru di editor sekarang?`, {
+        confirmText: 'Ya, Buka di Editor'
+      });
+      if (ok) loadPaket(newPaket.id);
+      else renderPaketList();
+    }
+
+    /** Hapus paket dari list */
+    async function deletePaket(paketId) {
+      const list = loadPaketList();
+      const paket = list.find(p => p.id === paketId);
+      if (!paket) return;
+      const ok = await showConfirm(`Hapus paket <strong>"${escapeHtml(paket.nama_paket)}"</strong>?<br><br>${paket.soal?.length || 0} soal akan terhapus permanen dari penyimpanan lokal.`, {
+        confirmText: 'Ya, Hapus', danger: true
+      });
+      if (!ok) return;
+      const idx = list.findIndex(p => p.id === paketId);
+      if (idx >= 0) list.splice(idx, 1);
+      savePaketList(list);
+      if (state.currentPaketId === paketId) {
+        state.currentPaketId = null;
+      }
+      renderPaketList();
+      showToast('Paket dihapus.', 'success');
+    }
+
+    /** Prompt input nama paket via popup custom */
+    async function promptNamaPaket(title, defaultValue) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'popup-overlay';
+        overlay.innerHTML = `
+          <div class="popup-card">
+            <div class="popup-icon popup-icon-info">${POPUP_ICONS.question}</div>
+            <div class="popup-body">
+              <div class="popup-title">${title}</div>
+              <div class="popup-message">
+                <input id="popup-input-nama" type="text" value="${escapeAttr(defaultValue || '')}" placeholder="cth: Soal UTS Matematika 2025" class="input-field w-full px-3 py-2.5 rounded-lg text-sm mt-2" autofocus />
+              </div>
+            </div>
+            <div class="popup-actions">
+              <button class="popup-btn-cancel" data-action="cancel">Batal</button>
+              <button class="popup-btn-ok" data-action="ok">OK</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#popup-input-nama');
+        setTimeout(() => input.focus(), 100);
+        const close = (result) => {
+          overlay.classList.add('popup-out');
+          const card = overlay.querySelector('.popup-card');
+          if (card) card.classList.add('popup-out');
+          setTimeout(() => overlay.remove(), 250);
+          resolve(result);
+        };
+        overlay.querySelector('[data-action="ok"]').addEventListener('click', () => {
+          const val = input.value.trim();
+          if (val) close(val);
+          else { input.focus(); showToast('Isi nama paket dulu.', 'warning'); }
+        });
+        overlay.querySelector('[data-action="cancel"]').addEventListener('click', () => close(null));
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); overlay.querySelector('[data-action="ok"]').click(); }
+          if (e.key === 'Escape') close(null);
+        });
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
+      });
+    }
+
+    /** Update status bar di Action Bar editor */
+    function updatePaketStatusBar() {
+      const bar = document.getElementById('paket-status-bar');
+      const namaEl = document.getElementById('paket-status-nama');
+      if (!bar || !namaEl) return;
+      if (state.currentPaketId) {
+        const list = loadPaketList();
+        const paket = list.find(p => p.id === state.currentPaketId);
+        if (paket) {
+          namaEl.textContent = paket.nama_paket + ' (' + (paket.soal?.length || 0) + ' soal)';
+          bar.classList.remove('hidden');
+          return;
+        }
+      }
+      bar.classList.add('hidden');
+    }
+
+    /** Buat paket baru (reset editor, keluar dari mode edit paket) */
+    async function bukaPaketBaru() {
+      if (state.soal.length > 0) {
+        const ok = await showConfirm('Buat paket baru?<br><br>Soal yang sedang diedit akan dikosongkan. Pastikan sudah disimpan.', {
+          confirmText: 'Ya, Buat Baru', danger: true
+        });
+        if (!ok) return;
+      }
+      state.soal = [];
+      state.currentPaketId = null;
+      const namaPaketInput = document.getElementById('nama-paket-soal');
+      if (namaPaketInput) namaPaketInput.value = '';
+      saveToStorage();
+      renderAll();
+      updatePaketStatusBar();
+      showToast('Editor direset untuk paket baru.', 'info');
+    }
+
+    /** Save As dari Action Bar (current editor state → nama baru) */
+    async function saveAsNewPaket() {
+      if (state.soal.length === 0) {
+        showToast('Belum ada soal untuk di-save as.', 'warning');
+        return;
+      }
+      const namaPaketInput = document.getElementById('nama-paket-soal');
+      const currentNama = namaPaketInput ? namaPaketInput.value.trim() : '';
+      const newNama = await promptNamaPaket('Save As — Nama Paket Baru', currentNama ? currentNama + ' (copy)' : '');
+      if (!newNama) return;
+      // Cek duplikat
+      const list = loadPaketList();
+      const dup = list.find(p => p.nama_paket === newNama);
+      if (dup) {
+        showToast('Nama paket sudah dipakai. Pilih nama lain.', 'error');
+        return;
+      }
+      // Update config snapshot
+      state.soal.forEach(s => {
+        s.mata_pelajaran = state.config.mata_pelajaran;
+        s.tanggal = state.config.tanggal;
+        s.waktu = state.config.waktu;
+        s.jumlah_soal = state.config.jumlah_soal;
+      });
+      const newPaket = {
+        id: 'PAKET_' + Date.now(),
+        nama_paket: newNama,
+        config: Object.assign({}, state.config),
+        soal: JSON.parse(JSON.stringify(state.soal)),
+        savedAt: new Date().toISOString(),
+        guru: state.user?.username || 'unknown'
+      };
+      list.push(newPaket);
+      savePaketList(list);
+      state.currentPaketId = newPaket.id;
+      if (namaPaketInput) namaPaketInput.value = newNama;
+      saveToStorage();
+      updatePaketStatusBar();
+      renderPaketList();
+      showToast(`Paket "${newNama}" dibuat. Klik "Simpan ke Spreadsheet" untuk upload.`, 'success');
+    }
+
+    /* ============================================================
        SIMPAN SEMUA (sync to GAS / localStorage)
        ============================================================ */
     async function simpanSemua() {
@@ -1434,8 +1816,32 @@
       });
       if (res.success) {
         showToast('Berhasil simpan ' + (res.saved || state.soal.length) + ' soal' + (CONFIG.WEB_APP_URL ? ' ke spreadsheet.' : ' (localStorage).'), 'success');
-        await showAlert(`<strong>${state.soal.length} soal</strong> berhasil disimpan.<br><br>Mapel: <strong>${state.config.mata_pelajaran}</strong><br>Tanggal: ${state.config.tanggal}<br>Waktu: ${state.config.waktu} menit`, 'success', 'Tersimpan');
+        // === AUTO-SAVE ke paket list (untuk fitur "Paket Tersimpan") ===
+        try {
+          const list = loadPaketList();
+          const paketId = state.currentPaketId || ('PAKET_' + Date.now());
+          // Hapus yang lama dengan nama sama
+          const existingSameName = list.findIndex(p => p.nama_paket === namaPaket && p.id !== paketId);
+          if (existingSameName >= 0) list.splice(existingSameName, 1);
+          const idxLama = list.findIndex(p => p.id === paketId);
+          const paket = {
+            id: paketId,
+            nama_paket: namaPaket,
+            config: Object.assign({}, state.config),
+            soal: JSON.parse(JSON.stringify(state.soal)),
+            savedAt: new Date().toISOString(),
+            guru: state.user?.username || 'unknown'
+          };
+          if (idxLama >= 0) list[idxLama] = paket;
+          else list.push(paket);
+          savePaketList(list);
+          state.currentPaketId = paketId;
+          saveToStorage();
+        } catch (e) { console.warn('Gagal auto-save ke paket list:', e); }
+        await showAlert(`<strong>${state.soal.length} soal</strong> berhasil disimpan.<br><br>Mapel: <strong>${state.config.mata_pelajaran}</strong><br>Tanggal: ${state.config.tanggal}<br>Waktu: ${state.config.waktu} menit<br><br>Paket juga tersimpan di tab <strong>Paket Tersimpan</strong>.`, 'success', 'Tersimpan');
         renderDaftarList();
+        renderPaketList();
+        updatePaketStatusBar();
       } else {
         showToast(res.error || 'Gagal simpan', 'error');
       }
