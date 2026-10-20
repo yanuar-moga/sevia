@@ -396,7 +396,7 @@
               <div>
                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Mata Pelajaran</label>
                 <select id="cfg-mapel" class="input-field w-full px-3 py-2.5 rounded-lg text-sm">
-                  <option>Pendidikan Agama dan Budi Pekerti</option>
+ <option>Pendidikan Agama dan Budi Pekerti</option>
                   <option>Pendidikan Pancasila</option>
                   <option>Bahasa Indonesia</option>
                   <option>Matematika</option>
@@ -408,6 +408,7 @@
                   <option>Informatika</option>
                   <option>Seni dan Budaya</option>
                   <option>Prakarya</option>
+
                 </select>
               </div>
               <div>
@@ -1528,17 +1529,29 @@
         if (!namaPaket) return;
         if (namaPaketInput) namaPaketInput.value = namaPaket;
       }
-      // Cek apakah nama sudah dipakai oleh paket lain
       const list = loadPaketList();
-      const existing = list.find(p => p.nama_paket === namaPaket && p.id !== state.currentPaketId);
-      if (existing) {
+      // Cek apakah ada paket LAIN dengan nama yang sama
+      const existingSameName = list.find(p => p.nama_paket === namaPaket && p.id !== state.currentPaketId);
+      if (existingSameName) {
         const ok = await showConfirm(`Nama paket <strong>"${escapeHtml(namaPaket)}"</strong> sudah ada.<br><br>Timpa paket yang sudah ada?`, {
           confirmText: 'Ya, Timpa', danger: true
         });
         if (!ok) return;
-        // Hapus yang lama
-        const idx = list.findIndex(p => p.id === existing.id);
-        if (idx >= 0) list.splice(idx, 1);
+        // Hapus paket lain dengan nama sama
+        const idxExisting = list.findIndex(p => p.id === existingSameName.id);
+        if (idxExisting >= 0) list.splice(idxExisting, 1);
+      }
+      // Tentukan paketId:
+      // - Kalau nama_paket SAMA dengan currentPaket → replace currentPaket (update)
+      // - Kalau nama_paket BEDA dengan currentPaket → buat paketId baru (paket baru)
+      let paketId;
+      const currentPaket = state.currentPaketId ? list.find(p => p.id === state.currentPaketId) : null;
+      if (currentPaket && currentPaket.nama_paket === namaPaket) {
+        // Nama sama dengan paket yang sedang diedit → update paket ini
+        paketId = state.currentPaketId;
+      } else {
+        // Nama beda → buat paket baru
+        paketId = 'PAKET_' + Date.now();
       }
       // Update config snapshot
       state.soal.forEach(s => {
@@ -1548,7 +1561,6 @@
         s.jumlah_soal = state.config.jumlah_soal;
       });
       // Build paket object
-      const paketId = state.currentPaketId || ('PAKET_' + Date.now());
       const paket = {
         id: paketId,
         nama_paket: namaPaket,
@@ -1557,10 +1569,10 @@
         savedAt: new Date().toISOString(),
         guru: state.user?.username || 'unknown'
       };
-      // Hapus entry lama dengan id sama (kalau ada)
+      // Hapus entry lama dengan id sama (kalau ada), lalu push yang baru
       const idxLama = list.findIndex(p => p.id === paketId);
-      if (idxLama >= 0) list.splice(idxLama, 1);
-      list.push(paket);
+      if (idxLama >= 0) list[idxLama] = paket;
+      else list.push(paket);
       const ok = savePaketList(list);
       if (ok) {
         state.currentPaketId = paketId;
@@ -1870,11 +1882,20 @@
         // === AUTO-SAVE ke paket list (untuk fitur "Paket Tersimpan") ===
         try {
           const list = loadPaketList();
-          const paketId = state.currentPaketId || ('PAKET_' + Date.now());
-          // Hapus yang lama dengan nama sama
-          const existingSameName = list.findIndex(p => p.nama_paket === namaPaket && p.id !== paketId);
-          if (existingSameName >= 0) list.splice(existingSameName, 1);
-          const idxLama = list.findIndex(p => p.id === paketId);
+          // Tentukan paketId:
+          // - Kalau nama_paket SAMA dengan currentPaket → replace currentPaket (update)
+          // - Kalau nama_paket BEDA → buat paketId baru (paket baru)
+          let paketId;
+          const currentPaket = state.currentPaketId ? list.find(p => p.id === state.currentPaketId) : null;
+          if (currentPaket && currentPaket.nama_paket === namaPaket) {
+            paketId = state.currentPaketId;
+          } else {
+            paketId = 'PAKET_' + Date.now();
+          }
+          // Hapus paket LAIN dengan nama sama (kalau ada)
+          const existingSameNameIdx = list.findIndex(p => p.nama_paket === namaPaket && p.id !== paketId);
+          if (existingSameNameIdx >= 0) list.splice(existingSameNameIdx, 1);
+          // Build paket
           const paket = {
             id: paketId,
             nama_paket: namaPaket,
@@ -1883,6 +1904,8 @@
             savedAt: new Date().toISOString(),
             guru: state.user?.username || 'unknown'
           };
+          // Update atau append
+          const idxLama = list.findIndex(p => p.id === paketId);
           if (idxLama >= 0) list[idxLama] = paket;
           else list.push(paket);
           savePaketList(list);
